@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#0a0a0a"/>
+<title>TatoFut - Fútbol Gratuito</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2040%2040'%3E%3Ccircle%20cx='20'%20cy='20'%20r='20'%20fill='%23b7f35a'/%3E%3Cg%20fill='%2315200d'%3E%3Cpolygon%20points='20,14%2025,17.5%2023,23%2017,23%2015,17.5'/%3E%3Cpolygon%20points='15,17.5%209,15%206,20%2010,26%2017,23'/%3E%3Cpolygon%20points='25,17.5%2031,15%2034,20%2030,26%2023,23'/%3E%3Cpolygon%20points='17,23%2023,23%2025,30%2020,35%2015,30'/%3E%3C/g%3E%3C/svg%3E"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>
+<link rel="preconnect" href="https://images.unsplash.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js" defer></script>
+<style>
+:root{color-scheme:dark;--bg:#0a0a0a;--bg-deep:#000;--surface:#1a1a1a;--surface-hover:#252525;--surface-active:#2f2f2f;--line:#2a2a2a;--text:#fff;--text-secondary:#b0b0b0;--text-muted:#707070;--brand:#b7f35a;--brand-hover:#c7f878;--brand-pressed:#9edb43;--brand-ink:#15200d;--live:#e50914;--focus:#d8ff9a;--radius-small:4px;--radius-control:8px;--radius-card:12px;--radius-dialog:16px;--radius-pill:999px;--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-8:32px;--space-10:40px;--space-12:48px;--rail-width:280px;--content-padding:clamp(16px,4vw,60px);--top-bar-height:64px;--search-strip-height:84px;--transition-fast:120ms ease;--transition-normal:180ms ease;--font-sans:Roboto,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+@media (max-width:1279px){:root{--content-padding:clamp(20px,3.5vw,40px)}}
+@media (max-width:767px){:root{--content-padding:16px;--top-bar-height:56px;--search-strip-height:76px}}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--font-sans);font-size:14px;line-height:1.5;min-width:320px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none}
+a{color:inherit;text-decoration:none}
+svg{display:block}
+.hidden{display:none!important}
+:focus-visible{outline:2px solid var(--focus);outline-offset:3px;border-radius:var(--radius-small)}
+.side-rail{position:fixed;top:0;left:0;bottom:0;width:var(--rail-width);background:#000;border-right:1px solid var(--line);display:flex;flex-direction:column;padding:var(--space-4) var(--space-3);gap:var(--space-4);z-index:200;overflow:hidden;transform:translateX(-100%);transition:transform 240ms ease;box-shadow:4px 0 32px rgba(0,0,0,.5)}
+.side-rail.open{transform:translateX(0)}
+.menu-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:150}
+.menu-backdrop.open{display:block}
+.rail-brand{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-2);border-radius:var(--radius-control);color:var(--text);font-weight:900;font-size:17px;letter-spacing:-.03em;flex-shrink:0;min-height:44px}
+.rail-brand-mark{width:34px;height:34px;border-radius:var(--radius-control);background:var(--brand);color:var(--brand-ink);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+.rail-brand-mark svg{width:22px;height:22px}
+.rail-label{white-space:nowrap;font-size:14px;font-weight:500}
+.rail-nav{display:flex;flex-direction:column;gap:2px;flex:1;position:relative}
+.rail-bottom{display:flex;flex-direction:column;gap:2px;padding-top:var(--space-3);border-top:1px solid var(--line)}
+.rail-link{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3);border-radius:var(--radius-control);color:var(--text-muted);min-height:44px;transition:background var(--transition-fast),color var(--transition-fast);position:relative;text-align:left;flex-shrink:0;font-weight:500;width:100%}
+.rail-link svg{flex-shrink:0;transition:color var(--transition-fast)}
+.rail-link:hover{background:var(--surface-hover);color:var(--text)}
+.rail-link.active{color:var(--text);font-weight:700;background:rgba(183,243,90,.06)}
+.rail-link.active::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;background:var(--brand);border-radius:2px}
+.rail-link.active svg{color:var(--brand)}
+.rail-nav-skeleton{display:none;flex-direction:column;gap:2px}
+.rail-nav.loading .rail-nav-skeleton{display:flex}
+.rail-nav.loading>.rail-link{display:none}
+.rail-skel-item{height:44px;border-radius:var(--radius-control);background:#1a1a1a;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:.75}}
+.top-bar{position:fixed;top:0;left:0;right:0;z-index:30;padding:0 var(--content-padding);display:flex;align-items:center;justify-content:flex-start;gap:var(--space-3);height:var(--top-bar-height);background:transparent;transition:background var(--transition-normal),border-color var(--transition-normal);border-bottom:1px solid transparent}
+.top-bar.is-scrolled{background:#000;border-bottom-color:var(--line)}
+.icon-btn{width:44px;height:44px;border-radius:var(--radius-control);background:rgba(255,255,255,.06);border:none;color:var(--text-secondary);display:flex;align-items:center;justify-content:center;transition:background var(--transition-fast),color var(--transition-fast);flex-shrink:0}
+.icon-btn:hover{background:rgba(255,255,255,.12);color:var(--text)}
+.menu-btn{display:flex}
+.top-brand{display:flex;align-items:center;gap:10px;padding:4px;border-radius:var(--radius-control)}
+.top-brand-mark{width:32px;height:32px;background:var(--brand);color:var(--brand-ink);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.top-brand-mark svg{width:20px;height:20px}
+.top-brand-label{font-weight:900;font-size:18px;letter-spacing:-.03em;color:#fff}
+@media (max-width:767px){.top-brand-label{font-size:16px}.top-brand-mark{width:28px;height:28px}}
+.search-strip{position:fixed;top:var(--top-bar-height);left:0;right:0;z-index:29;height:var(--search-strip-height);display:flex;align-items:center;justify-content:center;padding:0 var(--content-padding);background:transparent;transition:background var(--transition-normal),border-color var(--transition-normal);border-bottom:1px solid transparent;pointer-events:none}
+.search-strip.is-scrolled{background:#000;border-bottom-color:var(--line)}
+.search-strip-inner{display:flex;align-items:center;gap:12px;width:100%;max-width:820px;pointer-events:auto}
+.search-input-wrap{position:relative;flex:1;display:flex;align-items:center;min-width:0}
+.search-strip-icon{position:absolute;left:20px;top:50%;transform:translateY(-50%);color:#808080;pointer-events:none;transition:color var(--transition-fast)}
+.search-input-large{width:100%;height:56px;padding:0 24px 0 54px;background:#121212;border:1px solid #1f1f1f;border-radius:var(--radius-pill);color:#fff;font-size:15px;font-weight:500;transition:border-color var(--transition-fast),box-shadow var(--transition-fast),background var(--transition-fast)}
+.search-input-large::placeholder{color:#858585}
+.search-input-large:focus{outline:none;background:#171717;border-color:var(--brand);box-shadow:0 0 0 3px rgba(183,243,90,.15)}
+.search-input-wrap:focus-within .search-strip-icon{color:var(--brand)}
+.refresh-btn-large{width:56px;height:56px;border-radius:50%;background:#121212;border:1px solid #1f1f1f;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background var(--transition-fast),transform var(--transition-fast),border-color var(--transition-fast)}
+.refresh-btn-large:hover{background:#202020;border-color:#2a2a2a}
+.refresh-btn-large:active{background:#2a2a2a}
+.refresh-btn-large svg{width:22px;height:22px}
+@media (max-width:767px){.search-strip-inner{gap:8px}.search-input-large{height:48px;font-size:14px;padding:0 18px 0 46px}.search-strip-icon{left:16px}.refresh-btn-large{width:48px;height:48px}.refresh-btn-large svg{width:18px;height:18px}}
+.main{min-height:100vh;min-height:100dvh;padding-bottom:80px}
+@media (max-width:767px){.main{padding-bottom:20px}}
+.hero{position:relative;min-height:clamp(440px,58vh,640px);overflow:hidden;background:#000;display:flex;flex-direction:column;justify-content:center;border-bottom:1px solid var(--line)}
+@media (max-width:767px){.hero{min-height:440px}}
+.hero.is-loading{min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;background:#000;padding-top:calc(var(--top-bar-height) + var(--search-strip-height))}
+.hero.is-loading .hero__content{align-items:center;text-align:center;width:100%;padding:0 24px}
+.hero.is-loading .hero__label,.hero.is-loading .hero__description,.hero.is-loading .hero__actions{display:none}
+.hero.is-loading .hero__title{max-width:100%;font-size:clamp(1.6rem,3.5vw,2.6rem);color:var(--text-muted);animation:pulse 1.8s ease-in-out infinite}
+.hero__photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;z-index:1;transition:opacity 300ms ease}
+.hero__photo.loaded{opacity:.55}
+.hero__overlay{position:absolute;inset:0;z-index:2;pointer-events:none;background:rgba(10,10,10,.6)}
+.hero__content{position:relative;z-index:3;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;width:min(640px,92vw);min-height:inherit;padding:calc(var(--top-bar-height) + var(--search-strip-height) + 32px) 0 72px var(--content-padding)}
+@media (max-width:767px){.hero__content{padding:calc(var(--top-bar-height) + var(--search-strip-height) + 16px) 16px 48px;width:100%}}
+.hero__label{display:inline-flex;align-items:center;gap:var(--space-2);color:var(--text-secondary);font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:var(--space-3)}
+.hero__label .dot{width:8px;height:8px;border-radius:50%;background:var(--live);box-shadow:0 0 12px var(--live);animation:livePulse 2s ease-in-out infinite}
+.hero__label .dot.warn{background:#f4c56a;box-shadow:0 0 12px #f4c56a;animation:none}
+.hero__label .dot.none{display:none}
+@keyframes livePulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero__title{max-width:18ch;margin:0;color:#fff;font-size:clamp(2.2rem,4.5vw,3.8rem);font-weight:900;line-height:1.04;letter-spacing:-.03em}
+.hero__description{max-width:500px;margin:var(--space-4) 0 0;color:#ddd;font-size:1.05rem;line-height:1.5}
+.hero__actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+.btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);height:48px;padding:0 28px;background:#fff;color:#000;border-radius:var(--radius-control);font-weight:700;font-size:15px;transition:background var(--transition-fast);white-space:nowrap}
+.btn-primary:hover{background:#e6e6e6}
+.btn-primary:active{background:#ccc}
+.btn-primary.brand{background:var(--brand);color:var(--brand-ink)}
+.btn-primary.brand:hover{background:var(--brand-hover)}
+.content-area{position:relative;z-index:2;padding:0 var(--content-padding);display:flex;flex-direction:column;gap:var(--space-8);margin-top:var(--space-6)}
+.row-header{display:flex;align-items:baseline;justify-content:space-between;gap:var(--space-4);margin-bottom:var(--space-4);padding:0 4px var(--space-2);border-bottom:1px solid var(--line)}
+.row-title{margin:0;font-size:clamp(22px,2.4vw,30px);font-weight:900;letter-spacing:-.03em;color:var(--text);line-height:1.1}
+.row-count{font-size:12px;color:var(--text-muted);font-weight:600;font-variant-numeric:tabular-nums;text-transform:uppercase;letter-spacing:.5px}
+.row-wrapper{position:relative}
+.row-track{display:flex;gap:var(--space-3);overflow-x:auto;overflow-y:hidden;padding:var(--space-2) 4px var(--space-4);scroll-snap-type:x mandatory;scrollbar-width:none;scroll-behavior:smooth}
+.row-track::-webkit-scrollbar{display:none}
+.row-track>*{flex:0 0 clamp(260px,22vw,320px);scroll-snap-align:start}
+@media (max-width:767px){.row-track>*{flex:0 0 82vw;max-width:340px}}
+.row-track>.empty-state{flex:0 0 100%;max-width:100%;width:100%}
+.row-nav{position:absolute;top:45%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;background:#1a1a1a;border:1px solid var(--line);color:#fff;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--transition-normal),background var(--transition-fast);z-index:5}
+.row-wrapper:hover .row-nav,.row-wrapper:focus-within .row-nav{opacity:1;pointer-events:auto}
+.row-nav:hover{background:#252525}
+.row-nav:disabled{opacity:0!important;pointer-events:none}
+.row-nav.prev{left:-18px}
+.row-nav.next{right:-18px}
+@media (max-width:767px){.row-nav{display:none}}
+.match-card{display:flex;flex-direction:column;background:var(--surface);border-radius:var(--radius-card);cursor:pointer;text-align:left;transition:transform 150ms ease,background var(--transition-fast),box-shadow var(--transition-fast);overflow:hidden;position:relative;box-shadow:0 1px 3px rgba(0,0,0,.5),0 1px 2px rgba(0,0,0,.7)}
+.match-card:hover{transform:translateY(-2px);background:var(--surface-hover);box-shadow:0 4px 12px rgba(0,0,0,.55);z-index:2}
+.match-card.is-live{box-shadow:0 1px 3px rgba(0,0,0,.5),0 0 0 1px rgba(229,9,20,.5)}
+.match-card.is-live:hover{box-shadow:0 4px 12px rgba(0,0,0,.55),0 0 0 1px var(--live)}
+.match-thumb{position:relative;aspect-ratio:16/9;background:#000;overflow:hidden}
+.thumb-content{position:absolute;inset:0;z-index:1;overflow:hidden}
+.thumb-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity 200ms ease,transform 200ms ease;transform:scale(1)}
+.thumb-img.loaded{opacity:.9}
+.match-card:hover .thumb-img.loaded{transform:scale(1.05);opacity:1}
+.thumb-badge{position:absolute;top:var(--space-2);left:var(--space-2);z-index:3;display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:var(--radius-small);font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;background:rgba(0,0,0,.85);color:var(--text-secondary);border:1px solid rgba(255,255,255,.15)}
+.thumb-badge.live{background:var(--live);color:#fff;border-color:var(--live)}
+.thumb-badge.live::before{content:"";width:6px;height:6px;border-radius:50%;background:#fff}
+.thumb-badge.upcoming{background:#1a1a1a;color:var(--brand);border-color:#2a2a2a}
+.thumb-league{position:absolute;bottom:var(--space-2);right:var(--space-2);z-index:3;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:rgba(255,255,255,.9);background:rgba(0,0,0,.75);padding:3px 8px;border-radius:var(--radius-small)}
+.thumb-play-btn{position:absolute;bottom:var(--space-2);left:var(--space-2);z-index:4;display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-control);background:#fff;color:#000;font-size:12px;font-weight:700;transform:translateY(6px);opacity:0;transition:transform 180ms ease,opacity 180ms,background 120ms;pointer-events:none;white-space:nowrap}
+.match-card:hover .thumb-play-btn,.match-card:focus-within .thumb-play-btn{transform:translateY(0);opacity:1;pointer-events:auto}
+.match-card.is-live .thumb-play-btn{opacity:1;transform:translateY(0);pointer-events:auto;background:var(--brand);color:var(--brand-ink)}
+.match-info{padding:var(--space-3) var(--space-4) var(--space-4)}
+.match-title{margin:0;font-size:15px;font-weight:700;line-height:1.3;color:var(--text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;letter-spacing:-.01em}
+.match-meta{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;color:var(--text-muted);font-variant-numeric:tabular-nums;font-weight:500}
+.match-score{font-size:18px;font-weight:900;color:var(--brand);margin-top:6px;letter-spacing:-.02em}
+.stats-block{padding:var(--space-3) var(--space-4);border-top:1px solid var(--line);background:rgba(0,0,0,.35)}
+.stats-title{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:var(--space-2);display:block}
+.prob-bars{display:flex;flex-direction:column;gap:7px}
+.prob-row{display:flex;align-items:center;gap:var(--space-2);font-size:11px;font-weight:600}
+.prob-label{width:54px;text-align:right;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prob-track{flex:1;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.prob-fill{height:100%;background:var(--brand);border-radius:3px}
+.prob-row:nth-child(2) .prob-fill{background:var(--text-muted)}
+.prob-value{width:32px;text-align:right;color:var(--text);font-variant-numeric:tabular-nums;font-weight:700}
+.agenda-list{background:var(--surface);border-radius:var(--radius-card);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.5)}
+.agenda-item{border-bottom:1px solid var(--line)}
+.agenda-item:last-child{border-bottom:none}
+.agenda-row{display:grid;grid-template-columns:90px 96px 1fr auto;gap:var(--space-3);align-items:center;padding:var(--space-3) var(--space-4);cursor:pointer;transition:background var(--transition-fast);text-align:left;width:100%}
+.agenda-row:hover{background:var(--surface-hover)}
+.agenda-row.expanded{background:var(--surface-hover)}
+.agenda-when{display:flex;flex-direction:column;gap:4px;min-width:0}
+.agenda-time{font-size:15px;font-weight:900;color:var(--text);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.agenda-status{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted)}
+.agenda-status.live{color:var(--live)}
+.agenda-status.live::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--live)}
+.agenda-thumb{width:96px;aspect-ratio:16/9;border-radius:6px;overflow:hidden;background:#000;position:relative;flex-shrink:0}
+.agenda-thumb .thumb-img{border-radius:6px}
+.agenda-row:hover .agenda-thumb .thumb-img{transform:scale(1.05)}
+.agenda-main{min-width:0}
+.agenda-title{margin:0;font-size:14px;font-weight:600;color:var(--text);line-height:1.35;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.agenda-meta{margin-top:4px;font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.agenda-action{width:38px;height:38px;border-radius:var(--radius-control);background:rgba(255,255,255,.06);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;transition:background var(--transition-fast),color var(--transition-fast);flex-shrink:0}
+.agenda-row:hover .agenda-action{background:var(--brand);color:var(--brand-ink)}
+.agenda-chevron{color:var(--text-muted);transition:transform 200ms ease,color var(--transition-fast);flex-shrink:0}
+.agenda-row.expanded .agenda-chevron{transform:rotate(180deg);color:var(--brand)}
+.agenda-expand{max-height:0;overflow:hidden;transition:max-height 260ms ease;background:#111}
+.agenda-expand.open{max-height:800px}
+.agenda-expand-inner{padding:var(--space-4)}
+@media (max-width:767px){.agenda-row{grid-template-columns:56px 68px 1fr auto;gap:8px;padding:10px}.agenda-time{font-size:13px}.agenda-thumb{width:68px}.agenda-title{font-size:13px}}
+.skeleton-card{display:flex;flex-direction:column;background:var(--surface);border-radius:var(--radius-card);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.5)}
+.skeleton-thumb{aspect-ratio:16/9;background:#1a1a1a;animation:pulse 1.4s ease-in-out infinite}
+.skeleton-info{padding:var(--space-3) var(--space-4);display:flex;flex-direction:column;gap:9px}
+.skeleton-line{height:13px;border-radius:4px;background:#1a1a1a;animation:pulse 1.4s ease-in-out infinite}
+.skeleton-line.short{width:40%}
+.skeleton-line.medium{width:70%}
+.skeleton-stats{padding:var(--space-3) var(--space-4);border-top:1px solid var(--line);background:rgba(0,0,0,.3);display:flex;flex-direction:column;gap:9px}
+.skeleton-bar{height:6px;border-radius:3px;background:#1a1a1a;animation:pulse 1.4s ease-in-out infinite}
+.empty-state{padding:var(--space-12) var(--space-6);text-align:center;background:var(--surface);border-radius:var(--radius-card)}
+.empty-state h3{margin:0 0 var(--space-2);font-size:18px;font-weight:700;color:var(--text)}
+.empty-state p{margin:0 auto;max-width:440px;color:var(--text-secondary);font-size:14px;line-height:1.6}
+.status-bar{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-4) 0;color:var(--text-muted);font-size:12px;font-weight:500}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--brand);flex-shrink:0}
+.app-footer{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:var(--space-8) 0 var(--space-6);border-top:1px solid var(--line);color:var(--text-muted);font-size:12px;line-height:1.7;width:100%;gap:var(--space-2)}
+.footer-disclaimer-btn{color:var(--brand);background:none;border:none;padding:0;font:inherit;font-weight:600;text-decoration:underline;cursor:pointer}
+.footer-disclaimer-btn:hover{color:var(--brand-hover)}
+.modal{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;padding:var(--space-4)}
+.modal.open{display:flex}
+.modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.9)}
+.info-modal-content{position:relative;width:100%;max-width:640px;background:var(--surface);border-radius:var(--radius-dialog);overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.85);display:flex;flex-direction:column;max-height:90vh}
+.info-header{padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--line);background:#000;display:flex;align-items:center;justify-content:space-between}
+.info-header h3{margin:0;font-size:18px;font-weight:700;color:var(--text);letter-spacing:-.01em}
+.info-body{padding:var(--space-5);overflow-y:auto}
+.disclaimer-body p{color:var(--text-secondary);font-size:15px;line-height:1.7;margin:0}
+.info-scoreboard{display:flex;align-items:center;justify-content:center;gap:var(--space-4);margin-bottom:var(--space-5);padding-bottom:var(--space-5);border-bottom:1px solid var(--line)}
+.info-team{display:flex;flex-direction:column;align-items:center;gap:var(--space-2);flex:1;text-align:center}
+.info-team-logo{width:60px;height:60px;border-radius:50%;background:#252525;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:var(--brand)}
+.info-team-name{font-size:14px;font-weight:700;color:var(--text)}
+.info-score{font-size:40px;font-weight:900;color:var(--brand);font-variant-numeric:tabular-nums;letter-spacing:-2px;white-space:nowrap}
+.info-status{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-muted);text-align:center;margin-bottom:var(--space-4)}
+.info-events{display:flex;flex-direction:column;gap:var(--space-2)}
+.info-event{display:grid;grid-template-columns:1fr 40px 1fr;align-items:center;gap:var(--space-2);font-size:13px;padding:var(--space-2) 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.info-event:last-child{border-bottom:none}
+.info-event .ev-home{text-align:right;color:var(--text)}
+.info-event .ev-away{text-align:left;color:var(--text)}
+.info-event .ev-icon{text-align:center;font-size:16px}
+.info-event .ev-minute{color:var(--text-muted);font-size:11px;font-weight:600}
+.info-no-details{text-align:center;color:var(--text-muted);font-size:14px;padding:var(--space-6);background:#0a0a0a;border-radius:var(--radius-card)}
+.modal-content{position:relative;width:100%;max-width:1000px;background:var(--surface);border-radius:var(--radius-dialog);overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.9);display:flex;flex-direction:column;max-height:100vh;max-height:100dvh}
+.server-view{padding:var(--space-5);overflow-y:auto}
+.server-view.hidden{display:none}
+.server-title{margin:0 0 var(--space-1);font-size:20px;font-weight:700;color:var(--text);letter-spacing:-.01em}
+.server-subtitle{margin:0 0 var(--space-4);font-size:13px;color:var(--text-secondary)}
+.server-list{display:flex;flex-direction:column;gap:var(--space-2)}
+.server-loading{padding:var(--space-10) var(--space-4);text-align:center;color:var(--text-secondary);font-size:14px;display:flex;flex-direction:column;align-items:center;gap:var(--space-4);font-weight:500}
+.server-loading.error{color:#ff6b6b;font-weight:600}
+.server-loading.error .spinner{display:none}
+.spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,.1);border-top-color:var(--brand);border-radius:50%;animation:spin 700ms linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.server-btn{display:grid;grid-template-columns:1fr auto;gap:var(--space-3);align-items:center;padding:var(--space-3) var(--space-4);background:#0a0a0a;border:1px solid var(--line);border-radius:var(--radius-control);text-align:left;width:100%;transition:background var(--transition-fast),border-color var(--transition-fast)}
+.server-btn:hover:not(:disabled){background:#1a1a1a;border-color:var(--brand)}
+.server-btn:disabled{opacity:.4;cursor:not-allowed}
+.server-info{display:flex;flex-direction:column;gap:4px;min-width:0}
+.server-name{font-size:14px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.server-meta{font-size:11px;color:var(--text-muted);font-weight:500;display:flex;align-items:center;gap:6px}
+.lang-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:var(--radius-small);font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.lang-pill.es{background:rgba(183,243,90,.15);color:var(--brand)}
+.lang-pill.en{background:rgba(255,255,255,.08);color:var(--text-secondary)}
+.lang-pill.unknown{background:rgba(255,255,255,.08);color:var(--text-muted)}
+.lang-pill.broken{background:rgba(229,9,20,.15);color:#ff6b6b}
+.server-play{width:38px;height:38px;border-radius:50%;background:var(--brand);color:var(--brand-ink);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.player-view{display:none;flex-direction:column}
+.player-view.active{display:flex}
+.player-header{display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--line);background:#000;flex-shrink:0}
+.player-header-info{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
+.player-header-meta{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap}
+.live-badge-player{display:none;align-items:center;gap:5px;background:var(--live);color:#fff;padding:2px 8px;border-radius:var(--radius-small);font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+.live-badge-player.on{display:inline-flex}
+.live-badge-player::before{content:"";width:5px;height:5px;border-radius:50%;background:#fff}
+.player-league{font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.player-title{margin:0;font-size:15px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.player-actions{display:flex;align-items:center;gap:var(--space-2);flex-shrink:0}
+.player-action-btn{height:36px;padding:0 var(--space-3);background:rgba(255,255,255,.06);border:none;color:var(--text-secondary);border-radius:var(--radius-control);font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:background var(--transition-fast),color var(--transition-fast)}
+.player-action-btn:hover{background:rgba(255,255,255,.12);color:var(--text)}
+.player-action-btn.goto-live{display:none;background:var(--brand);color:var(--brand-ink)}
+.player-action-btn.goto-live.show{display:inline-flex}
+.player-action-btn.goto-live:hover{background:var(--brand-hover);color:var(--brand-ink)}
+.player-close-btn{width:36px;height:36px;border-radius:var(--radius-control);background:rgba(255,255,255,.06);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;transition:background var(--transition-fast),color var(--transition-fast);flex-shrink:0}
+.player-close-btn:hover{background:rgba(229,9,20,.15);color:#ff6b6b}
+.player-loading{padding:var(--space-12) var(--space-6);text-align:center;color:var(--text-secondary);font-size:14px;background:#000;aspect-ratio:16/9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--space-4);font-weight:500}
+.player-loading::before{content:"";width:36px;height:36px;border:3px solid rgba(255,255,255,.1);border-top-color:var(--brand);border-radius:50%;animation:spin 700ms linear infinite}
+.player-loading.error{color:#ff6b6b;font-weight:600}
+.player-loading.error::before{display:none}
+#video{width:100%;aspect-ratio:16/9;display:block;background:#000}
+.quality-selector{position:relative}
+.quality-menu{position:absolute;top:calc(100% + 6px);right:0;min-width:140px;background:#1a1a1a;border:1px solid var(--line);border-radius:var(--radius-control);box-shadow:0 12px 32px rgba(0,0,0,.6);padding:6px;display:none;z-index:50;max-height:300px;overflow-y:auto}
+.quality-menu.open{display:block}
+.quality-option{display:block;width:100%;text-align:left;padding:8px 12px;border-radius:6px;color:var(--text-secondary);font-size:12px;font-weight:500;transition:background var(--transition-fast),color var(--transition-fast);white-space:nowrap}
+.quality-option:hover{background:var(--surface-hover);color:var(--text)}
+.quality-option.active{color:var(--brand);font-weight:700}
+.quality-option.active::before{content:"✓ "}
+@media (max-width:767px){.modal{padding:0}.modal-content,.info-modal-content{max-width:100%;border-radius:0;height:100vh;height:100dvh;max-height:none}.player-view.active{height:100vh;height:100dvh}#video{flex:1;height:auto;aspect-ratio:auto;object-fit:contain}.player-loading{aspect-ratio:auto;flex:1}.server-view{padding:var(--space-4)}}
+#live-section,#upcoming-section,#recent-section,#search-results-section{scroll-margin-top:calc(var(--top-bar-height) + var(--search-strip-height) + 20px)}
+</style>
+</head>
+<body>
+<aside class="side-rail" id="side-rail" aria-label="Navegación principal">
+<a href="#" class="rail-brand" data-scroll="top" aria-label="TatoFut — Inicio">
+<span class="rail-brand-mark" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="currentColor"/><path d="M12 6.5l-2.3 1.6.9 2.7h2.8l.9-2.7z" fill="#b7f35a"/><path d="M7.2 9.5l1.7 1.6-.5 2.4-2.3.5c-.5-1.4-.4-3 .3-4.4z" fill="#b7f35a"/><path d="M16.8 9.5c.7 1.4.8 3 .3 4.4l-2.3-.5-.5-2.4z" fill="#b7f35a"/><path d="M9.5 16.5l1.5-1.5h2l1.5 1.5-1 1.5h-3z" fill="#b7f35a"/></svg>
+</span>
+<span class="rail-label">TatoFut</span>
+</a>
+<nav class="rail-nav loading" id="rail-nav">
+<div class="rail-nav-skeleton" aria-hidden="true"><div class="rail-skel-item"></div><div class="rail-skel-item"></div><div class="rail-skel-item"></div><div class="rail-skel-item"></div></div>
+<a href="#" class="rail-link active" data-scroll="top" aria-label="Inicio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="rail-label">Inicio</span></a>
+<a href="#live-section" class="rail-link" data-scroll="live-section" aria-label="En vivo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/></svg><span class="rail-label">En vivo</span></a>
+<a href="#upcoming-section" class="rail-link" data-scroll="upcoming-section" aria-label="Calendario"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg><span class="rail-label">Calendario</span></a>
+<a href="#" class="rail-link" data-scroll="search-focus" aria-label="Buscar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg><span class="rail-label">Buscar</span></a>
+</nav>
+<div class="rail-bottom">
+<a href="#" class="rail-link" id="disclaimer-link" aria-label="Disclaimer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="rail-label">Disclaimer</span></a>
+</div>
+</aside>
+<div class="menu-backdrop" id="menu-backdrop"></div>
+<header class="top-bar" id="top-bar">
+<button class="icon-btn menu-btn" id="menu-btn" aria-label="Abrir menú"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+<a href="#" class="top-brand" id="top-brand" aria-label="TatoFut — Inicio">
+<span class="top-brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="currentColor"/><path d="M12 6.5l-2.3 1.6.9 2.7h2.8l.9-2.7z" fill="#b7f35a"/><path d="M7.2 9.5l1.7 1.6-.5 2.4-2.3.5c-.5-1.4-.4-3 .3-4.4z" fill="#b7f35a"/><path d="M16.8 9.5c.7 1.4.8 3 .3 4.4l-2.3-.5-.5-2.4z" fill="#b7f35a"/><path d="M9.5 16.5l1.5-1.5h2l1.5 1.5-1 1.5h-3z" fill="#b7f35a"/></svg></span>
+<span class="top-brand-label">TatoFut</span>
+</a>
+</header>
+<div class="search-strip" id="search-strip">
+<div class="search-strip-inner">
+<div class="search-input-wrap">
+<svg class="search-strip-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
+<input type="search" id="search-input" class="search-input-large" placeholder="Buscar equipos, ligas o partidos" aria-label="Buscar partidos" autocomplete="off"/>
+</div>
+<button class="refresh-btn-large" id="refresh-btn" aria-label="Actualizar partidos" title="Actualizar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg></button>
+</div>
+</div>
+<main class="main" id="top">
+<section class="hero is-loading" id="hero" aria-live="polite">
+<img class="hero__photo" id="hero-photo" alt="" loading="eager" fetchpriority="high" decoding="async"/>
+<div class="hero__overlay" aria-hidden="true"></div>
+<div class="hero__content">
+<div class="hero__label" id="hero-label"><span class="dot none" id="hero-label-dot"></span><span id="hero-label-text"></span></div>
+<h1 class="hero__title" id="hero-title">Cargando partidos, espera un momento... por favor</h1>
+<p class="hero__description" id="hero-description"></p>
+<div class="hero__actions" id="hero-actions"></div>
+</div>
+</section>
+<div class="content-area">
+<section id="live-section" style="display:none">
+<header class="row-header"><h2 class="row-title">En vivo ahora</h2><span class="row-count" id="live-count"></span></header>
+<div class="row-wrapper">
+<button class="row-nav prev" aria-label="Anterior" data-nav="prev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+<div class="row-track" id="live-grid"></div>
+<button class="row-nav next" aria-label="Siguiente" data-nav="next"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+</div>
+</section>
+<section id="upcoming-section" style="display:none">
+<header class="row-header"><h2 class="row-title">Próximos partidos</h2><span class="row-count" id="upcoming-count"></span></header>
+<div class="row-wrapper">
+<button class="row-nav prev" aria-label="Anterior" data-nav="prev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+<div class="row-track" id="upcoming-grid"></div>
+<button class="row-nav next" aria-label="Siguiente" data-nav="next"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+</div>
+</section>
+<section id="recent-section" style="display:none">
+<header class="row-header"><h2 class="row-title">Finalizando</h2><span class="row-count" id="recent-count"></span></header>
+<div class="agenda-list" id="recent-grid"></div>
+</section>
+<section id="search-results-section" style="display:none">
+<header class="row-header"><h2 class="row-title">Resultados</h2><span class="row-count" id="search-count"></span></header>
+<div class="row-wrapper"><div class="row-track" id="search-grid"></div></div>
+</section>
+<div class="status-bar" aria-live="polite"><span class="status-dot"></span><span id="status-text"></span></div>
+<footer class="app-footer"><p>© TatoFutbol · <button type="button" class="footer-disclaimer-btn" id="footer-disclaimer-btn">Aviso legal</button></p></footer>
+</div>
+</main>
+<div class="modal" id="player-modal" role="dialog" aria-modal="true" aria-labelledby="server-title">
+<div class="modal-backdrop" id="modal-backdrop"></div>
+<div class="modal-content">
+<div class="server-view" id="server-view">
+<h3 class="server-title" id="server-title">Selecciona un servidor</h3>
+<p class="server-subtitle" id="server-subtitle"></p>
+<div class="server-list" id="server-list"><div class="server-loading"><div class="spinner"></div><span>Buscando servidores disponibles en Tato Futbol...</span></div></div>
+</div>
+<div class="player-view" id="player-view">
+<div class="player-header">
+<div class="player-header-info"><div class="player-header-meta"><span class="live-badge-player" id="live-badge">EN VIVO</span><span class="player-league" id="player-league"></span></div><h2 class="player-title" id="player-title">Reproduciendo…</h2></div>
+<div class="player-actions">
+<div class="quality-selector" id="quality-selector" style="display:none">
+<button class="player-action-btn" id="quality-btn" type="button" aria-haspopup="true" aria-expanded="false"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="10" x2="6" y2="14"/><line x1="10" y1="10" x2="10" y2="14"/></svg><span id="quality-label">Auto</span></button>
+<div class="quality-menu" id="quality-menu"></div>
+</div>
+<button class="player-action-btn goto-live" id="goto-live-btn" type="button"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>Ir al vivo</button>
+<button class="player-action-btn" id="back-to-servers" type="button" aria-label="Volver a servidores">← Servidores</button>
+<button class="player-close-btn" id="close-player" aria-label="Cerrar reproductor"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+</div>
+</div>
+<div class="player-loading" id="player-loading">Conectando al servidor a través de Tato Fut...</div>
+<video id="video" controls playsinline style="display:none"></video>
+</div>
+</div>
+</div>
+<div class="modal" id="info-modal" role="dialog" aria-modal="true" aria-labelledby="info-title">
+<div class="modal-backdrop" id="info-backdrop"></div>
+<div class="info-modal-content">
+<div class="info-header"><h3 id="info-title">Información del partido</h3><button class="player-close-btn" id="close-info" aria-label="Cerrar información"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+<div class="info-body" id="info-body"></div>
+</div>
+</div>
+<div class="modal" id="disclaimer-modal" role="dialog" aria-modal="true" aria-labelledby="disclaimer-title">
+<div class="modal-backdrop" id="disclaimer-backdrop"></div>
+<div class="info-modal-content">
+<div class="info-header"><h3 id="disclaimer-title">Disclaimer</h3><button class="player-close-btn" id="close-disclaimer" aria-label="Cerrar disclaimer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+<div class="info-body disclaimer-body"><p>Este sitio web no aloja ni transmite contenido protegido por cualquier licencia, copyright, contenido protegido por derecho de autor o cualquier tema legal que viole la ley de cualquier país. Es una herramienta que solamente consulta otras páginas para hacer un scrapping y visualizar localmente que indexa señales públicas de internet, hace una auditoría para verificar que el video funcione y lo embende en la página sin conocer sus fuentes o de dónde provienen. Usted como persona individual utiliza este servicio bajo su propio riesgo, Tato Futbol.</p></div>
+</div>
+</div>
+<script>
+(()=>{
+const API="http://localhost:8000",DEFAULT_THUMB="https://images.unsplash.com/photo-1781152791898-945ca008c8ef?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D";
+const $search=document.getElementById("search-input"),$refresh=document.getElementById("refresh-btn"),$statusText=document.getElementById("status-text"),$topBar=document.getElementById("top-bar"),$searchStrip=document.getElementById("search-strip"),$menuBtn=document.getElementById("menu-btn"),$sideRail=document.getElementById("side-rail"),$menuBackdrop=document.getElementById("menu-backdrop"),$railNav=document.getElementById("rail-nav"),$topBrand=document.getElementById("top-brand");
+const $hero=document.getElementById("hero"),$heroLabelDot=document.getElementById("hero-label-dot"),$heroLabelText=document.getElementById("hero-label-text"),$heroTitle=document.getElementById("hero-title"),$heroDescription=document.getElementById("hero-description"),$heroActions=document.getElementById("hero-actions"),$heroPhoto=document.getElementById("hero-photo");
+const $liveSection=document.getElementById("live-section"),$liveGrid=document.getElementById("live-grid"),$liveCount=document.getElementById("live-count");
+const $upcomingSection=document.getElementById("upcoming-section"),$upcomingGrid=document.getElementById("upcoming-grid"),$upcomingCount=document.getElementById("upcoming-count");
+const $recentSection=document.getElementById("recent-section"),$recentGrid=document.getElementById("recent-grid"),$recentCount=document.getElementById("recent-count");
+const $searchSection=document.getElementById("search-results-section"),$searchGrid=document.getElementById("search-grid"),$searchCount=document.getElementById("search-count");
+const $modal=document.getElementById("player-modal"),$backdrop=document.getElementById("modal-backdrop"),$serverView=document.getElementById("server-view"),$serverTitle=document.getElementById("server-title"),$serverSubtitle=document.getElementById("server-subtitle"),$serverList=document.getElementById("server-list"),$playerView=document.getElementById("player-view"),$video=document.getElementById("video"),$playerTitle=document.getElementById("player-title"),$playerLeague=document.getElementById("player-league"),$playerLoading=document.getElementById("player-loading"),$close=document.getElementById("close-player"),$backToServers=document.getElementById("back-to-servers"),$liveBadge=document.getElementById("live-badge"),$gotoLive=document.getElementById("goto-live-btn");
+const $qualitySelector=document.getElementById("quality-selector"),$qualityBtn=document.getElementById("quality-btn"),$qualityLabel=document.getElementById("quality-label"),$qualityMenu=document.getElementById("quality-menu");
+const $infoModal=document.getElementById("info-modal"),$infoBackdrop=document.getElementById("info-backdrop"),$infoTitle=document.getElementById("info-title"),$infoBody=document.getElementById("info-body"),$closeInfo=document.getElementById("close-info");
+const $disclaimerModal=document.getElementById("disclaimer-modal"),$disclaimerBackdrop=document.getElementById("disclaimer-backdrop"),$closeDisclaimer=document.getElementById("close-disclaimer"),$disclaimerLink=document.getElementById("disclaimer-link"),$footerDisclaimerBtn=document.getElementById("footer-disclaimer-btn");
+let allMatches=[],hlsInstance=null,liveWatchInterval=null,searchQuery="";
+let serverLoadTimer=null,serverSearchTimerA=null,serverSearchTimerB=null,serverFailedCooldown=null,searchTimer=null;
+const thumbCache=new Map(),serverCache=new Map();
+const escapeHtml=(s)=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const setStatus=(t)=>{$statusText.textContent=t};
+const setVisible=(el,v)=>{el.style.display=v?"":"none"};
+const idle=(fn)=>{if("requestIdleCallback"in window)requestIdleCallback(fn,{timeout:1500});else setTimeout(fn,100)};
+$menuBtn.addEventListener("click",()=>{$sideRail.classList.toggle("open");$menuBackdrop.classList.toggle("open")});
+$menuBackdrop.addEventListener("click",()=>{$sideRail.classList.remove("open");$menuBackdrop.classList.remove("open")});
+$topBrand.addEventListener("click",(e)=>{e.preventDefault();window.scrollTo({top:0,behavior:"smooth"})});
+function openDisclaimer(){$disclaimerModal.classList.add("open");document.body.style.overflow="hidden"}
+function closeDisclaimer(){$disclaimerModal.classList.remove("open");document.body.style.overflow=""}
+$disclaimerLink.addEventListener("click",(e)=>{e.preventDefault();openDisclaimer();$sideRail.classList.remove("open");$menuBackdrop.classList.remove("open")});
+$footerDisclaimerBtn.addEventListener("click",openDisclaimer);
+$closeDisclaimer.addEventListener("click",closeDisclaimer);
+$disclaimerBackdrop.addEventListener("click",closeDisclaimer);
+function buildQualityMenu(){
+if(!hlsInstance||!hlsInstance.levels||hlsInstance.levels.length<=1){$qualitySelector.style.display="none";return}
+$qualitySelector.style.display="";
+const levels=hlsInstance.levels,isAuto=hlsInstance.autoLevelEnabled,currentIdx=hlsInstance.currentLevel;
+const levelOpts=levels.map((l,i)=>({idx:i,height:l.height||0,bitrate:l.bitrate||0,label:l.height?`${l.height}p`:`${Math.round((l.bitrate||0)/1000)}k`}));
+levelOpts.sort((a,b)=>b.height-a.height||b.bitrate-a.bitrate);
+const opts=[{idx:-1,label:"Auto",active:isAuto}].concat(levelOpts.map(o=>({idx:o.idx,label:o.label,active:!isAuto&&currentIdx===o.idx})));
+$qualityMenu.innerHTML=opts.map(o=>`<button type="button" class="quality-option${o.active?" active":""}" data-level="${o.idx}">${o.label}</button>`).join("");
+if(isAuto){const c=levels[currentIdx];$qualityLabel.textContent=c&&c.height?`Auto (${c.height}p)`:"Auto"}else{const c=levels[currentIdx];$qualityLabel.textContent=c&&c.height?`${c.height}p`:"Manual"}
+$qualityMenu.querySelectorAll(".quality-option").forEach(btn=>{btn.addEventListener("click",()=>{const lvl=parseInt(btn.dataset.level,10);if(!hlsInstance)return;hlsInstance.currentLevel=lvl===-1?-1:lvl;$qualityMenu.classList.remove("open");$qualityBtn.setAttribute("aria-expanded","false");buildQualityMenu()})})}
+$qualityBtn.addEventListener("click",(e)=>{e.stopPropagation();const o=$qualityMenu.classList.toggle("open");$qualityBtn.setAttribute("aria-expanded",String(o))});
+document.addEventListener("click",(e)=>{if(!$qualityMenu.contains(e.target)&&!$qualityBtn.contains(e.target)){$qualityMenu.classList.remove("open");$qualityBtn.setAttribute("aria-expanded","false")}});
+function startServerLoadTimer(){clearServerLoadTimer();serverLoadTimer=setTimeout(()=>{if(!$playerView.classList.contains("active"))return;showServerFailed()},20000)}
+function clearServerLoadTimer(){if(serverLoadTimer){clearTimeout(serverLoadTimer);serverLoadTimer=null}}
+function showServerFailed(){clearServerLoadTimer();if(hlsInstance){try{hlsInstance.destroy()}catch(_){}hlsInstance=null}stopLiveWatch();try{$video.pause();$video.removeAttribute("src")}catch(_){}
+$video.style.display="none";$qualitySelector.style.display="none";$qualityMenu.classList.remove("open");$playerLoading.style.display="flex";$playerLoading.classList.add("error");$playerLoading.textContent="Servidor no funcional, intenta con otro.";
+if(serverFailedCooldown)clearTimeout(serverFailedCooldown);serverFailedCooldown=setTimeout(()=>{serverFailedCooldown=null;if($playerView.classList.contains("active"))backToServers()},2500)}
+function startServerSearchTimeouts(){clearServerSearchTimeouts();serverSearchTimerA=setTimeout(()=>{const el=$serverList.querySelector(".server-loading");if(!el)return;const sp=el.querySelector("span");if(sp)sp.textContent="Estamos tardando en encontrar, espera 30s más..."},60000);serverSearchTimerB=setTimeout(()=>{if(!$serverList.querySelector(".server-loading"))return;$serverList.innerHTML=`<div class="server-loading error"><span>No se pudieron ubicar servidores a través de Tato Fut, intenta nuevamente.</span></div>`},91000)}
+function clearServerSearchTimeouts(){if(serverSearchTimerA){clearTimeout(serverSearchTimerA);serverSearchTimerA=null}if(serverSearchTimerB){clearTimeout(serverSearchTimerB);serverSearchTimerB=null}}
+function skeletonCardHTML(){return `<div class="skeleton-card"><div class="skeleton-thumb"></div><div class="skeleton-info"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div><div class="skeleton-stats"><div class="skeleton-bar" style="width:70%"></div><div class="skeleton-bar" style="width:50%"></div><div class="skeleton-bar" style="width:80%"></div></div></div>`}
+function renderSkeletons(){const html=Array.from({length:4},skeletonCardHTML).join("");$liveGrid.innerHTML=html;$upcomingGrid.innerHTML=html;setVisible($liveSection,true);setVisible($upcomingSection,true)}
+async function getThumbnail(title,league){const key=`${title}||${league}`;if(thumbCache.has(key))return thumbCache.get(key);try{const params=new URLSearchParams({title});if(league)params.set("league",league);const res=await fetch(`${API}/api/thumbnail?${params}`);if(!res.ok)throw new Error(`HTTP ${res.status}`);let d=await res.json();if(!d||!d.thumbnail_url)d={type:"photo",thumbnail_url:DEFAULT_THUMB};thumbCache.set(key,d);return d}catch{const fb={type:"photo",thumbnail_url:DEFAULT_THUMB};thumbCache.set(key,fb);return fb}}
+function applyThumbnail(container,data){container.innerHTML="";if(data&&data.type==="photo"&&data.thumbnail_url){const img=document.createElement("img");img.src=data.thumbnail_url;img.alt="";img.loading="lazy";img.decoding="async";img.className="thumb-img";img.onload=()=>img.classList.add("loaded");img.onerror=()=>{img.remove();const fb=document.createElement("img");fb.src=DEFAULT_THUMB;fb.className="thumb-img loaded";container.appendChild(fb)};container.appendChild(img);return}const img=document.createElement("img");img.src=DEFAULT_THUMB;img.className="thumb-img loaded";container.appendChild(img)}
+const thumbIO=("IntersectionObserver"in window)?new IntersectionObserver((entries,obs)=>{for(const e of entries){if(!e.isIntersecting)continue;obs.unobserve(e.target);thumbQueue.push(e.target)}pumpThumbQueue()},{rootMargin:"400px"}):null;
+const thumbQueue=[];let thumbWorking=false;
+async function pumpThumbQueue(){if(thumbWorking)return;thumbWorking=true;while(thumbQueue.length){const batch=thumbQueue.splice(0,3);await Promise.all(batch.map(loadThumbEl))}thumbWorking=false}
+async function loadThumbEl(el){if(el.dataset.hydrated==="1")return;el.dataset.hydrated="1";const content=el.querySelector(".thumb-content");if(!content)return;const data=await getThumbnail(el.dataset.title,el.dataset.league||"");applyThumbnail(content,data)}
+function hydrateCardThumbnails(){const list=document.querySelectorAll(".match-thumb[data-title]:not([data-hydrated]),.agenda-thumb[data-title]:not([data-hydrated])");if(thumbIO){list.forEach(el=>thumbIO.observe(el))}else{list.forEach(el=>thumbQueue.push(el));pumpThumbQueue()}}
+async function hydrateHeroThumbnail(match){$heroPhoto.classList.remove("loaded");$heroPhoto.removeAttribute("src");if(!match)return;const data=await getThumbnail(match.title,match.league);if(data&&data.type==="photo"&&data.thumbnail_url){$heroPhoto.onload=()=>$heroPhoto.classList.add("loaded");$heroPhoto.onerror=()=>{$heroPhoto.src=DEFAULT_THUMB;$heroPhoto.classList.add("loaded")};$heroPhoto.src=data.thumbnail_url}else{$heroPhoto.src=DEFAULT_THUMB;$heroPhoto.classList.add("loaded")}}
+function hydrateStats(){const cards=document.querySelectorAll(".match-card");cards.forEach(card=>{const idx=parseInt(card.dataset.idx,10);const match=allMatches[idx];if(!match)return;const cleanTitle=match.title.replace(/^.*?:\s*/,"");const parts=cleanTitle.split(/\s+(?:vs\.?|v|@|-|–|x)\s+/i);const home=parts[0]?parts[0].trim():"Local";const away=parts[1]?parts[1].trim():"Visitante";const hash=(s)=>{let h=0;for(let i=0;i<s.length;i++)h=(h<<5)-h+s.charCodeAt(i);return Math.abs(h)};const hVal=30+(hash(home)%25);const aVal=30+(hash(away)%25);const dVal=Math.max(20,100-hVal-aVal);const total=hVal+dVal+aVal;const hPct=Math.round(hVal/total*100);const dPct=Math.round(dVal/total*100);const aPct=Math.round(aVal/total*100);const $probs=document.getElementById(`probs-${idx}`);if($probs){$probs.innerHTML=`<div class="prob-row"><span class="prob-label">${escapeHtml(home)}</span><div class="prob-track"><div class="prob-fill" style="width:${hPct}%"></div></div><span class="prob-value">${hPct}%</span></div><div class="prob-row"><span class="prob-label">Empate</span><div class="prob-track"><div class="prob-fill" style="width:${dPct}%"></div></div><span class="prob-value">${dPct}%</span></div><div class="prob-row"><span class="prob-label">${escapeHtml(away)}</span><div class="prob-track"><div class="prob-fill" style="width:${aPct}%"></div></div><span class="prob-value">${aPct}%</span></div>`;card.querySelector(`[data-stats-for="${idx}"]`).classList.remove("hidden")}})}
+function matchCardHTML(match,idx){const st=match.status;let badgeCls="recent",badgeTxt="FINAL";if(st==="live"){badgeCls="live";badgeTxt="EN VIVO"}if(st==="upcoming"){badgeCls="upcoming";badgeTxt="PRÓXIMO"}const league=match.league?`<span class="thumb-league">${escapeHtml(match.league)}</span>`:"";const time=match.time?`<span class="match-meta"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${escapeHtml(match.time)}</span>`:`<span class="match-meta">Por confirmar</span>`;const score=match.score?`<div class="match-score">${escapeHtml(match.score)}</div>`:"";const btnText=st==="recent"?"📊 Ver información de este evento":"▶ Ver en Tato Futbol";
+return `<article class="match-card ${st==="live"?"is-live":""}" data-idx="${idx}" role="button" tabindex="0" aria-label="Ver ${escapeHtml(match.title)}"><div class="match-thumb" data-title="${escapeHtml(match.title||"")}" data-league="${escapeHtml(match.league||"")}"><div class="thumb-content"></div><span class="thumb-badge ${badgeCls}">${badgeTxt}</span>${league}<button class="thumb-play-btn" type="button">${btnText}</button></div><div class="match-info"><h3 class="match-title">${escapeHtml(match.title||"Partido sin título")}</h3>${time}${score}</div><div class="stats-block hidden" data-stats-for="${idx}"><span class="stats-title">Probabilidad</span><div class="prob-bars" id="probs-${idx}"></div></div></article>`}
+function agendaRowHTML(match,idx){const st=match.status;const statusText=st==="live"?`<span class="agenda-status live">EN VIVO</span>`:st==="recent"?`<span class="agenda-status">FINAL</span>`:st==="upcoming"?`<span class="agenda-status">PRÓXIMO</span>`:`<span class="agenda-status">PARTIDO</span>`;const score=match.score?`<div class="match-score" style="margin-top:2px">${escapeHtml(match.score)}</div>`:"";const isRecent=st==="recent";const actionHTML=isRecent?`<svg class="agenda-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>`:`<span class="agenda-action" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg></span>`;const thumb=`<div class="agenda-thumb" data-title="${escapeHtml(match.title||"")}" data-league="${escapeHtml(match.league||"")}"><div class="thumb-content"></div></div>`;const body=`<div class="agenda-when"><span class="agenda-time">${escapeHtml(match.time||"—")}</span>${statusText}</div>${thumb}<div class="agenda-main"><p class="agenda-title">${escapeHtml(match.title||"Partido")}</p>${match.league?`<div class="agenda-meta">${escapeHtml(match.league)}</div>`:""}${score}</div>${actionHTML}`;
+if(isRecent){return `<div class="agenda-item"><button class="agenda-row" data-idx="${idx}" type="button">${body}</button><div class="agenda-expand"><div class="agenda-expand-inner"></div></div></div>`}
+return `<div class="agenda-item"><button class="agenda-row" data-idx="${idx}" type="button">${body}</button></div>`}
+function renderTrack($track,matches,mode="card"){if(!matches.length){$track.innerHTML="";return}if(mode==="agenda")$track.innerHTML=matches.map(m=>agendaRowHTML(m,allMatches.indexOf(m))).join("");else $track.innerHTML=matches.map(m=>matchCardHTML(m,allMatches.indexOf(m))).join("")}
+function setupRowNav(section){if(!section)return;const wrapper=section.querySelector(".row-wrapper");if(!wrapper)return;const track=wrapper.querySelector(".row-track");const prev=wrapper.querySelector('[data-nav="prev"]');const next=wrapper.querySelector('[data-nav="next"]');if(!track||!prev||!next)return;const update=()=>{const max=track.scrollWidth-track.clientWidth;prev.disabled=track.scrollLeft<=4;next.disabled=track.scrollLeft>=max-4};prev.onclick=()=>track.scrollBy({left:-track.clientWidth*.75,behavior:"smooth"});next.onclick=()=>track.scrollBy({left:track.clientWidth*.75,behavior:"smooth"});track.onscroll=update;const obs=new MutationObserver(update);obs.observe(track,{childList:true});update()}
+function renderHero(match){$hero.classList.remove("is-loading");if(!match){$heroLabelDot.className="dot none";$heroLabelText.textContent="SIN PARTIDOS";$heroTitle.textContent="No hay partidos disponibles ahora";$heroDescription.textContent="Pulsa actualizar o vuelve más tarde.";$heroActions.innerHTML="";$heroPhoto.classList.remove("loaded");return}updateHeroForMatch(match)}
+function updateHeroForMatch(match){if(!match)return;$hero.classList.remove("is-loading");const isLive=match.status==="live";const isRecent=match.status==="recent";$heroLabelDot.className="dot"+(isLive?"":isRecent?" none":" warn");$heroLabelText.textContent=isLive?"EN VIVO":isRecent?"FINALIZADO":"PRÓXIMO";$heroTitle.textContent=match.title||"Partido destacado";const meta=[];if(match.league)meta.push(match.league);if(match.time)meta.push(match.time);if(match.score)meta.push(match.score);$heroDescription.textContent=meta.join(" · ")||"Partido destacado del día.";$heroActions.innerHTML=`<button class="btn-primary" id="hero-watch"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>Ver en Tato Futbol</button>`;document.getElementById("hero-watch").addEventListener("click",()=>{if(match.status==="recent")openInfoModal(match);else openServerModal(match)});hydrateHeroThumbnail(match)}
+async function loadMatches(force=false){renderSkeletons();try{const res=await fetch(`${API}/api/matches${force?"?force=1":""}`);if(!res.ok)throw new Error(`HTTP ${res.status}`);allMatches=await res.json();const live=allMatches.filter(m=>m.status==="live");const upcoming=allMatches.filter(m=>m.status==="upcoming");const recent=allMatches.filter(m=>m.status==="recent");renderHero(live[0]||upcoming[0]||null);renderTrack($liveGrid,live,"card");$liveCount.textContent=live.length?`${live.length} ${live.length===1?"partido":"partidos"}`:"";setVisible($liveSection,live.length>0);renderTrack($upcomingGrid,upcoming,"card");$upcomingCount.textContent=upcoming.length?`${upcoming.length} ${upcoming.length===1?"partido":"partidos"}`:"";setVisible($upcomingSection,upcoming.length>0);renderTrack($recentGrid,recent,"agenda");$recentCount.textContent=recent.length?`${recent.length} ${recent.length===1?"partido":"partidos"}`:"";setVisible($recentSection,recent.length>0);const total=allMatches.length;setStatus(total?`${total} ${total===1?"partido activo":"partidos activos"} · ${new Date().toLocaleTimeString()}`:"Sin partidos relevantes ahora mismo. Pulsa actualizar para reintentar.");hydrateCardThumbnails();idle(hydrateStats);if(searchQuery)applySearch(searchQuery)}catch(e){setStatus("No se pudo cargar la agenda: "+e.message)}finally{$railNav.classList.remove("loading")}}
+function applySearch(q){searchQuery=(q||"").trim().toLowerCase();if(!searchQuery){setVisible($searchSection,false);setVisible($liveSection,allMatches.some(m=>m.status==="live"));setVisible($upcomingSection,allMatches.some(m=>m.status==="upcoming"));setVisible($recentSection,allMatches.some(m=>m.status==="recent"));return}setVisible($liveSection,false);setVisible($upcomingSection,false);setVisible($recentSection,false);setVisible($searchSection,true);const filtered=allMatches.filter(m=>(m.title||"").toLowerCase().includes(searchQuery)||(m.league||"").toLowerCase().includes(searchQuery));$searchCount.textContent=`${filtered.length} ${filtered.length===1?"resultado":"resultados"}`;if(!filtered.length){$searchGrid.innerHTML=`<div class="empty-state"><h3>No encontramos resultados</h3><p>No hay partidos para “${escapeHtml(q)}”. Prueba con otro equipo, liga o palabra clave.</p><button class="btn-primary brand" id="clear-search-btn" style="margin-top:16px;height:40px;padding:0 16px;">Limpiar búsqueda</button></div>`;document.getElementById("clear-search-btn").addEventListener("click",()=>{$search.value="";applySearch("")})}else{renderTrack($searchGrid,filtered,"card");hydrateCardThumbnails();idle(hydrateStats)}}
+$search.addEventListener("input",(e)=>{clearTimeout(searchTimer);const v=e.target.value;searchTimer=setTimeout(()=>applySearch(v),120)});
+async function openServerModal(match){$modal.classList.add("open");document.body.style.overflow="hidden";$serverView.classList.remove("hidden");$playerView.classList.remove("active");$qualitySelector.style.display="none";$qualityMenu.classList.remove("open");$playerLoading.classList.remove("error");$serverTitle.textContent=match.title||"Selecciona un servidor";$serverSubtitle.textContent=[match.league,match.time].filter(Boolean).join(" · ")||"";$serverList.innerHTML=`<div class="server-loading"><div class="spinner"></div><span>Buscando servidores disponibles en Tato Futbol...</span></div>`;startServerSearchTimeouts();try{const servers=await fetchServers(match);clearServerSearchTimeouts();renderServerList(match,servers)}catch(e){clearServerSearchTimeouts();$serverList.innerHTML=`<div class="server-loading error">No se pudieron cargar los servidores.<br><span style="font-size:12px;color:var(--text-muted);font-weight:400;">${escapeHtml(e.message)}</span></div>`}}
+async function fetchServers(match){const key=match.match_url;if(serverCache.has(key))return serverCache.get(key);const res=await fetch(`${API}/api/servers?match_url=${encodeURIComponent(match.match_url)}`);if(!res.ok){const t=await res.json().catch(()=>({}));throw new Error(t.detail||`HTTP ${res.status}`)}const data=await res.json();serverCache.set(key,data);return data}
+function renderServerList(match,servers){if(!servers||!servers.length){$serverList.innerHTML=`<div class="server-loading error">No se encontraron servidores disponibles para este partido.</div>`;return}
+$serverList.innerHTML=servers.map((s,i)=>{const lang=s.language||"unknown";const working=!!s.working;const langLabel=lang==="es"?"🇪🇸 Español":lang==="en"?"🇬🇧 Inglés":"—";const langCls=!working?"broken":(lang==="es"?"es":lang==="en"?"en":"unknown");const status=working?"":(s.reason?`· ${escapeHtml(s.reason)}`:"· No disponible");return `<button class="server-btn" data-idx="${i}" ${working?"":"disabled"} type="button"><div class="server-info"><span class="server-name">${escapeHtml(s.name||`Servidor ${i+1}`)}</span><span class="server-meta"><span class="lang-pill ${langCls}">${langLabel}</span>${status}</span></div><span class="server-play" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg></span></button>`}).join("");
+$serverList.querySelectorAll(".server-btn").forEach(btn=>{btn.addEventListener("click",()=>{const server=servers[parseInt(btn.dataset.idx,10)];if(!server||!server.stream_url)return;playServer(match,server)})})}
+function playServer(match,server){clearServerLoadTimer();if(serverFailedCooldown){clearTimeout(serverFailedCooldown);serverFailedCooldown=null}$serverView.classList.add("hidden");$playerView.classList.add("active");$playerTitle.textContent=`${match.league||""} ${match.title||"Reproduciendo"} - Tato Futbol`.trim();$playerLeague.textContent=match.league||"";$liveBadge.classList.toggle("on",match.status==="live");$playerLoading.classList.remove("error");$playerLoading.style.display="flex";$playerLoading.textContent="Conectando al servidor a través de Tato Fut...";$video.style.display="none";$qualitySelector.style.display="none";$qualityMenu.classList.remove("open");$qualityBtn.setAttribute("aria-expanded","false");try{$video.pause();$video.removeAttribute("src")}catch(_){}
+if(hlsInstance){try{hlsInstance.destroy()}catch(_){}hlsInstance=null}stopLiveWatch();startServerLoadTimer();
+const proxied=`${API}/api/proxy?url=${encodeURIComponent(server.stream_url)}`;
+if(window.Hls&&Hls.isSupported()){hlsInstance=new Hls({lowLatencyMode:true,liveSyncDurationCount:1,liveMaxLatencyDurationCount:3,maxBufferLength:8,maxMaxBufferLength:15,backBufferLength:0,startPosition:-1,enableWorker:true,fragLoadingMaxRetry:6,manifestLoadingMaxRetry:4});hlsInstance.loadSource(proxied);hlsInstance.attachMedia($video);
+hlsInstance.on(Hls.Events.MANIFEST_PARSED,()=>{$playerLoading.style.display="none";$video.style.display="block";$video.addEventListener("loadedmetadata",()=>{jumpToLiveEdge();$video.play().catch(()=>{})},{once:true});startLiveWatch();buildQualityMenu()});
+hlsInstance.on(Hls.Events.FRAG_LOADED,()=>{clearServerLoadTimer()});
+hlsInstance.on(Hls.Events.LEVEL_SWITCHED,()=>{buildQualityMenu()});
+hlsInstance.on(Hls.Events.LEVEL_UPDATED,(_e,data)=>{if(data.details&&data.details.live&&hlsInstance.liveSyncPosition){const drift=hlsInstance.liveSyncPosition-$video.currentTime;if(drift>15)jumpToLiveEdge()}});
+hlsInstance.on(Hls.Events.ERROR,(_e,data)=>{if(!data.fatal)return;if(data.type===Hls.ErrorTypes.NETWORK_ERROR)hlsInstance.startLoad();else if(data.type===Hls.ErrorTypes.MEDIA_ERROR)hlsInstance.recoverMediaError();else{clearServerLoadTimer();showServerFailed()}})}
+else if($video.canPlayType("application/vnd.apple.mpegurl")){$video.src=proxied;$video.addEventListener("loadedmetadata",()=>{$playerLoading.style.display="none";$video.style.display="block";$video.play().catch(()=>{})},{once:true});$video.addEventListener("playing",()=>clearServerLoadTimer(),{once:true})}
+else{clearServerLoadTimer();$playerLoading.classList.add("error");$playerLoading.textContent="Este navegador no soporta HLS."}}
+function jumpToLiveEdge(){if(!hlsInstance)return;const sync=hlsInstance.liveSyncPosition;if(sync&&Number.isFinite(sync)){try{$video.currentTime=sync}catch(_){}}}
+function startLiveWatch(){stopLiveWatch();liveWatchInterval=setInterval(()=>{if(!hlsInstance||!hlsInstance.liveSyncPosition)return;const drift=hlsInstance.liveSyncPosition-$video.currentTime;if(!Number.isFinite(drift))return;if(drift>8){$gotoLive.classList.add("show");if(drift>20)jumpToLiveEdge()}else{$gotoLive.classList.remove("show")}},4000)}
+function stopLiveWatch(){if(liveWatchInterval){clearInterval(liveWatchInterval);liveWatchInterval=null}$gotoLive.classList.remove("show");$liveBadge.classList.remove("on")}
+function closeModal(){clearServerLoadTimer();clearServerSearchTimeouts();if(serverFailedCooldown){clearTimeout(serverFailedCooldown);serverFailedCooldown=null}$modal.classList.remove("open");document.body.style.overflow="";try{$video.pause();$video.removeAttribute("src")}catch(_){}if(hlsInstance){try{hlsInstance.destroy()}catch(_){}hlsInstance=null}stopLiveWatch();$playerView.classList.remove("active");$serverView.classList.remove("hidden");$qualitySelector.style.display="none";$qualityMenu.classList.remove("open");$playerLoading.classList.remove("error")}
+function backToServers(){clearServerLoadTimer();if(serverFailedCooldown){clearTimeout(serverFailedCooldown);serverFailedCooldown=null}try{$video.pause();$video.removeAttribute("src")}catch(_){}if(hlsInstance){try{hlsInstance.destroy()}catch(_){}hlsInstance=null}stopLiveWatch();$playerView.classList.remove("active");$serverView.classList.remove("hidden");$qualitySelector.style.display="none";$qualityMenu.classList.remove("open");$playerLoading.classList.remove("error")}
+function buildInfoHTML(match){const cleanTitle=match.title.replace(/^.*?:\s*/,"");const parts=cleanTitle.split(/\s+(?:vs\.?|v|@|-|–|x)\s+/i);const home=parts[0]?parts[0].trim():"Local";const away=parts[1]?parts[1].trim():"Visitante";const score=match.score||"?-?";const[homeScore,awayScore]=score.includes("-")?score.split("-").map(s=>s.trim()):["?","?"];const events=match.events||[];let eventsHTML="";if(events.length>0){eventsHTML=`<div class="info-events">`+events.map(ev=>`<div class="info-event"><div class="ev-home">${ev.team==="home"?`${escapeHtml(ev.player)} <span class="ev-minute">${ev.minute}'</span>`:""}</div><div class="ev-icon">${ev.icon}</div><div class="ev-away">${ev.team==="away"?`<span class="ev-minute">${ev.minute}'</span> ${escapeHtml(ev.player)}`:""}</div></div>`).join("")+`</div>`}else{eventsHTML=`<div class="info-no-details">No hay detalles de eventos disponibles para este partido.</div>`}
+return `<div class="info-scoreboard"><div class="info-team"><div class="info-team-logo">${escapeHtml(home.slice(0,2).toUpperCase())}</div><span class="info-team-name">${escapeHtml(home)}</span></div><div class="info-score">${escapeHtml(homeScore)} - ${escapeHtml(awayScore)}</div><div class="info-team"><div class="info-team-logo">${escapeHtml(away.slice(0,2).toUpperCase())}</div><span class="info-team-name">${escapeHtml(away)}</span></div></div><div class="info-status">Finalizado</div>${eventsHTML}`}
+function openInfoModal(match){$infoModal.classList.add("open");document.body.style.overflow="hidden";$infoTitle.textContent=match.title||"Información del partido";$infoBody.innerHTML=buildInfoHTML(match)}
+$closeInfo.addEventListener("click",()=>{$infoModal.classList.remove("open");document.body.style.overflow=""});
+$infoBackdrop.addEventListener("click",()=>{$infoModal.classList.remove("open");document.body.style.overflow=""});
+function toggleAgendaExpand(row,match){const item=row.closest(".agenda-item");if(!item)return;const panel=item.querySelector(".agenda-expand");if(!panel)return;const wasOpen=panel.classList.contains("open");document.querySelectorAll(".agenda-expand.open").forEach(p=>{if(p!==panel){p.classList.remove("open");const r=p.closest(".agenda-item")?.querySelector(".agenda-row");if(r)r.classList.remove("expanded")}});if(wasOpen){panel.classList.remove("open");row.classList.remove("expanded")}else{const inner=panel.querySelector(".agenda-expand-inner");if(inner&&!inner.dataset.populated){inner.innerHTML=buildInfoHTML(match);inner.dataset.populated="1"}panel.classList.add("open");row.classList.add("expanded")}}
+document.querySelectorAll("[data-scroll]").forEach(el=>{el.addEventListener("click",(e)=>{e.preventDefault();const target=el.dataset.scroll;if(target==="top")window.scrollTo({top:0,behavior:"smooth"});else if(target==="search-focus"){window.scrollTo({top:0,behavior:"smooth"});setTimeout(()=>$search.focus(),400)}else{const n=document.getElementById(target);if(n)n.scrollIntoView({behavior:"smooth",block:"start"})}document.querySelectorAll(".rail-link.active").forEach(a=>a.classList.remove("active"));if(el.classList.contains("rail-link"))el.classList.add("active");$sideRail.classList.remove("open");$menuBackdrop.classList.remove("open")})});
+let scrollRAF=0;
+window.addEventListener("scroll",()=>{if(scrollRAF)return;scrollRAF=requestAnimationFrame(()=>{scrollRAF=0;const scrolled=window.scrollY>40;$topBar.classList.toggle("is-scrolled",scrolled);$searchStrip.classList.toggle("is-scrolled",scrolled)})},{passive:true});
+$refresh.addEventListener("click",()=>{serverCache.clear();loadMatches(true)});
+$gotoLive.addEventListener("click",()=>{jumpToLiveEdge();$gotoLive.classList.remove("show")});
+$close.addEventListener("click",closeModal);
+$backdrop.addEventListener("click",closeModal);
+$backToServers.addEventListener("click",backToServers);
+document.addEventListener("keydown",(e)=>{if(e.key==="Escape"){if($qualityMenu.classList.contains("open")){$qualityMenu.classList.remove("open");$qualityBtn.setAttribute("aria-expanded","false");return}if($modal.classList.contains("open"))closeModal();if($infoModal.classList.contains("open")){$infoModal.classList.remove("open");document.body.style.overflow=""}if($disclaimerModal.classList.contains("open"))closeDisclaimer();if($sideRail.classList.contains("open")){$sideRail.classList.remove("open");$menuBackdrop.classList.remove("open")}}
+if((e.key==="Enter"||e.key===" ")&&e.target.classList.contains("match-card")){e.preventDefault();const idx=parseInt(e.target.dataset.idx,10);const m=allMatches[idx];if(m){updateHeroForMatch(m);if(m.status==="recent")openInfoModal(m);else openServerModal(m)}}});
+document.addEventListener("click",(e)=>{const card=e.target.closest(".match-card");if(card){const idx=parseInt(card.dataset.idx,10);const m=allMatches[idx];if(m){updateHeroForMatch(m);if(m.status==="recent")openInfoModal(m);else openServerModal(m);return}}
+const row=e.target.closest(".agenda-row");if(row){const idx=parseInt(row.dataset.idx,10);const m=allMatches[idx];if(!m)return;updateHeroForMatch(m);if(m.status==="recent")toggleAgendaExpand(row,m);else openServerModal(m)}});
+["live-section","upcoming-section","search-results-section"].forEach(id=>setupRowNav(document.getElementById(id)));
+loadMatches();
+})();
+</script>
+</body>
+</html>

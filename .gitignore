@@ -1,0 +1,26 @@
+cat >> .gitignore <<'EOF'
+
+# Entornos virtuales de Python
+venv/
+.venv/
+env/
+ENV/
+
+# Archivos generados por Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Credenciales y variables de entorno
+.env
+.env.*
+!.env.example
+
+# Archivos temporales y registros locales
+.DS_Store
+*.log
+EOF
