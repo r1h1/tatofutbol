@@ -1,28 +1,23 @@
-# ============================================================
-# TatoDeportes — Backend productivo con Playwright + Chromium
-# Base: imagen oficial que ya trae Chromium y dependencias.
-# ============================================================
+# Usa la imagen oficial de Playwright que ya incluye Chromium y sus dependencias
 FROM mcr.microsoft.com/playwright/python:v1.43.0-jammy
 
-# Optimizaciones de Python
+# Configuraciones de Python
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=1 \
     HEADLESS=1 \
-    MATCH_VISIBLE_MINUTES=200 \
-    LIVE_WINDOW_SEGMENTS=4
+    PORT=8000
 
 WORKDIR /app
 
-# 1) Instalar dependencias primero (mejor caché de capas Docker)
+# Copia e instala las dependencias de Python
 COPY requirements.txt .
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# 2) Copiar el código del backend
+# Copia el código del backend
 COPY backend ./backend
 
-# 3) Render inyecta $PORT; usamos fallback a 8000
+# Expone el puerto (Render inyecta la variable $PORT)
 EXPOSE 8000
 
-CMD ["sh", "-c", "uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips='*'"]
+# Comando de arranque: Uvicorn escuchando en 0.0.0.0 y usando el puerto de Render
+CMD ["sh", "-c", "uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
