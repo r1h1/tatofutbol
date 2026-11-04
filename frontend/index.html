@@ -589,22 +589,31 @@ body {
 
 <script>
 // ── BLOQUEO DE INSPECT / DEVTOOLS ──
-document.addEventListener('contextmenu', e => e.preventDefault());
-document.addEventListener('keydown', e => {
-    if (e.key === 'F12' || 
-        (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key)) ||
-        (e.metaKey && e.altKey && ['I', 'J', 'C'].includes(e.key)) ||
-        (e.ctrlKey && e.key === 'U')) {
-        e.preventDefault();
-    }
-});
+// CORRECCIÓN (Bug C): en localhost permitimos DevTools para poder depurar.
+// En producción (Netlify) se mantiene el bloqueo como estaba.
+if (!["localhost", "127.0.0.1"].includes(window.location.hostname)) {
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('keydown', e => {
+      if (e.key === 'F12' || 
+          (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key)) ||
+          (e.metaKey && e.altKey && ['I', 'J', 'C'].includes(e.key)) ||
+          (e.ctrlKey && e.key === 'U')) {
+          e.preventDefault();
+      }
+  });
+}
 
 (()=>{
 "use strict";
 
-const PRODUCTION_API_URL = "https://tatofutbol.onrender.com"; 
+// CORRECCIÓN (Bug A): API auto-detecta localhost vs producción.
+// En local llama a http://localhost:8000; en Netlify a Render.
 const FALLBACK_IMG = "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/89/Camp_Nou_%28Joan_Gamper_2019%29.jpg/800px-Camp_Nou_%28Joan_Gamper_2019%29.jpg";
-const API = PRODUCTION_API_URL;
+const API = (
+  ["localhost", "127.0.0.1"].includes(window.location.hostname)
+    ? "http://localhost:8000"
+    : "https://tatofutbol.onrender.com"
+);
 
 let sportsList = [], currentSport = null, currentSportMeta = null, allMatches = [], allChannels = [], hlsInstance = null;
 let heroInterval = null, currentHeroIndex = 0, currentLiveMatches = [];
@@ -733,11 +742,17 @@ async function selectSport(key) {
   $upcomingRow.style.display = "block"; $upcomingGrid.innerHTML = `<div class="skl skl-card"></div><div class="skl skl-card"></div><div class="skl skl-card"></div>`;
   $recentRow.style.display = "none";
 
+  // CORRECCIÓN (Bug B): AbortController con timeout de 2 min para no
+  // quedarse colgado cuando Render free está en cold start (30-90s).
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 min
+
   try {
     const [chRes, mRes] = await Promise.all([
-      fetch(`${API}/api/channels?sport=${key}`).catch(()=>null),
-      fetch(`${API}/api/matches?sport=${key}`).catch(()=>null)
+      fetch(`${API}/api/channels?sport=${key}`, { signal: controller.signal }).catch(()=>null),
+      fetch(`${API}/api/matches?sport=${key}`, { signal: controller.signal }).catch(()=>null)
     ]);
+    clearTimeout(timeoutId);
     
     if (chRes && chRes.ok) {
       const chData = await chRes.json();
@@ -751,7 +766,10 @@ async function selectSport(key) {
 
     renderContent();
   } catch (e) {
+    clearTimeout(timeoutId);
     console.error("Error al cargar el deporte:", e);
+    $liveGrid.innerHTML = `<p style="padding:20px; color:#aaa;">El servidor tardó demasiado o no respondió. Reintenta en unos segundos.</p>`;
+    $liveRow.style.display = "block";
   } finally {
     hideLoadingOverlay();
   }

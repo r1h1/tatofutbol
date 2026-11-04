@@ -25,6 +25,7 @@ from .scraper import (
     get_matches_with_servers,
     resolve_servers,
 )
+from .m3u_sources import get_channels_for_sport
 from .sports_config import is_valid_sport, list_sports
 from .thumbnails import resolve_thumbnail
 
@@ -38,7 +39,13 @@ _ALLOWED_RAW = os.environ.get(
     "ALLOWED_ORIGINS",
     "http://localhost:5500,http://127.0.0.1:5500,http://localhost:3000",
 ).strip()
-ALLOWED_ORIGINS = [o.strip() for o in _ALLOWED_RAW.split(",") if o.strip()]
+# CAMBIO: rstrip("/") para que "https://tatotv.netlify.app/" (con barra)
+# coincida con el header Origin del navegador, que NUNCA lleva barra final.
+ALLOWED_ORIGINS = [
+    o.strip().rstrip("/")
+    for o in _ALLOWED_RAW.split(",")
+    if o.strip()
+]
 
 app.add_middleware(
     CORSMiddleware,
@@ -303,6 +310,28 @@ async def api_matches(
     return _filter_and_sort_matches(data)
 
 
+@app.get("/api/channels")
+async def api_channels(sport: str = Query("football")):
+    """
+    Canales M3U en vivo (iptv-org + Free-TV + manuales).
+
+    No depende de Playwright: descarga las listas con httpx desde GitHub,
+    así que funciona en Render aunque Chromium no esté instalado o las
+    IPs del datacenter estén bloqueadas por los sitios de streaming.
+
+    Parámetros:
+      - sport: clave de deporte. Default "football".
+    """
+    sport = (sport or "football").strip().lower()
+    if not is_valid_sport(sport):
+        raise HTTPException(400, f"Deporte no soportado: {sport}")
+    try:
+        channels = await get_channels_for_sport(sport)
+        return channels
+    except Exception as e:
+        raise HTTPException(500, f"Error cargando canales M3U: {e}")
+
+
 @app.get("/api/servers")
 async def api_servers(
     match_url: str = Query(...),
@@ -440,6 +469,16 @@ async def root():
         "sports": [s["key"] for s in list_sports()],
         "allowed_origins": ALLOWED_ORIGINS,
     }
+
+
+@app.head("/")
+async def root_head():
+    """
+    CAMBIO: Render hace un HEAD / como health check y FastAPI solo
+    tenía GET /, así que devolvía 405 Method Not Allowed en los logs.
+    Este handler responde 200 sin body al HEAD.
+    """
+    return Response(status_code=200)
 
 
 @app.get("/health")

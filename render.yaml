@@ -1,3 +1,11 @@
+# ============================================================
+# TatoDeportes — Configuración de Render
+# ============================================================
+# Este archivo describe el servicio web que Render crea y
+# mantiene. Cualquier cambio aquí requiere hacer commit + push
+# y luego "Manual Deploy → Clear build cache & deploy" en el
+# panel de Render para que se aplique.
+# ============================================================
 services:
   - type: web
     name: tato-deportes-backend
@@ -5,18 +13,43 @@ services:
     plan: free
     region: oregon
     dockerfilePath: ./Dockerfile
+
+    # CAMBIO: apuntamos el health check a /health (GET) en vez de /
+    # Antes Render hacía HEAD / y FastAPI devolvía 405 Method Not Allowed.
+    # Ahora hay dos capas de protección:
+    #   1. /health responde a GET con {"status":"healthy",...}
+    #   2. @app.head("/") añadido en main.py responde 200 al HEAD /
+    # Usar /health es más semántico y no depende del handler del root.
     healthCheckPath: /health
+
     autoDeploy: true
+
     envVars:
+      # Playwright corre sin ventana (obligatorio en servidores).
       - key: HEADLESS
         value: "1"
+
+      # Cuántos minutos hacia atrás se muestran los partidos ya jugados.
+      # 200 min ≈ 3h 20min de margen para ver resultados recientes.
       - key: MATCH_VISIBLE_MINUTES
         value: "200"
+
+      # Cuántos segmentos HLS se conservan al proxear un stream en vivo.
+      # 4 segmentos ≈ 24-32s de ventana. Más = más buffering posible.
       - key: LIVE_WINDOW_SEGMENTS
         value: "4"
-      # ⚠️ IMPORTANTE: este valor debe reemplazarse en el dashboard de Render
-      # después del primer deploy del frontend en Netlify.
-      # Formato: URLs separadas por coma SIN espacios.
-      # Ejemplo: https://tato-futbol.netlify.app,http://localhost:5500
+
+      # ⚠️ IMPORTANTE: este valor NO se versiona aquí (sync: false).
+      # Se configura en el dashboard de Render → Environment.
+      #
+      # Formato: URLs separadas por coma, SIN espacios y SIN barra final.
+      # Ejemplo correcto:
+      #   https://tatotv.netlify.app,http://localhost:5500,http://127.0.0.1:5500
+      # Ejemplo INCORRECTO (rompe CORS silenciosamente):
+      #   https://tatotv.netlify.app/,http://localhost:5500/
+      #
+      # El header Origin del navegador NUNCA lleva barra final.
+      # El código en main.py ya normaliza con .rstrip("/"), pero es
+      # mejor no depender de esa red de seguridad.
       - key: ALLOWED_ORIGINS
         sync: false

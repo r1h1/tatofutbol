@@ -42,3 +42,6 @@
   for = "/offline.html"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
+
+[build.environment]
+  PYTHON_VERSION = "3.11"

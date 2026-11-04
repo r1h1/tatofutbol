@@ -14,7 +14,7 @@
  * IMPORTANTE: sube VERSION cuando publiques cambios importantes en
  * index.html o en este archivo, para forzar la actualización de la caché.
  */
-const VERSION = "v1";
+const VERSION = "v2";
 const CACHE_SHELL = `TatoDeportes-shell-${VERSION}`;
 const CACHE_API = `TatoDeportes-api-${VERSION}`;
 const CACHE_THUMBS = `TatoDeportes-thumbs-${VERSION}`;

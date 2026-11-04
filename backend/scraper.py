@@ -41,8 +41,16 @@ async def get_match_list(sport_key: str = "football") -> List[Dict]:
             tasks.append(_generic_site_scraper(agenda_url=src["agenda_url"], base_url=src["base_url"], source_name=name, min_title_len=src.get("min_title_len",5), sport_key=sport_key))
     results = await asyncio.gather(*tasks, return_exceptions=True)
     matches = []
-    for r in results:
-        if isinstance(r, list): matches.extend(r)
+    # CAMBIO: loguear explícitamente qué fuente falló y con qué excepción.
+    # Antes return_exceptions=True convertía los errores en objetos Exception
+    # que se ignoraban silenciosamente, haciendo imposible diagnosticar
+    # problemas como "Executable doesn't exist" de Playwright.
+    for i, r in enumerate(results):
+        if isinstance(r, list):
+            matches.extend(r)
+        else:
+            src_name = sources[i]["name"] if i < len(sources) else f"fuente_{i}"
+            print(f"[SCRAPER:{sport_key}:{src_name}] FALLÓ: {r!r}")
     seen = set(); unique = []
     for m in matches:
         key = (m.get("title","").lower(), m.get("time",""))
@@ -185,7 +193,12 @@ async def _roja_get_matches(sport_key: str = "football", src_cfg: Optional[Dict]
         try:
             await page.goto(agenda_url, wait_until="domcontentloaded", timeout=45000)
             await page.wait_for_timeout(4000)
-        except: await browser.close(); return []
+        except Exception as e:
+            # CAMBIO: antes este except silenciaba el error. Ahora lo logueamos
+            # para que sea visible en el log de Render si el sitio bloquea,
+            # timeout, o Chromium falla al arrancar.
+            print(f"[SCRAPER:{sport_key}:roja] goto FALLÓ: {str(e)[:150]}")
+            await browser.close(); return []
         items = await page.query_selector_all("#menu li.toggle-submenu")
         if not items:
             await browser.close()

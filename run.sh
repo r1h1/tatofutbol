@@ -77,14 +77,25 @@ if [ ! -d "venv" ]; then
   echo "${CYAN}[*]${RESET} Actualizando pip..."
   ./venv/bin/python -m pip install --upgrade pip --quiet
 
-  echo "${CYAN}[*]${RESET} Instalando requirements.txt..."
-  ./venv/bin/python -m pip install -r requirements.txt
+  echo "${CYAN}[*]${RESET} Instalando backend/requirements.txt..."
+  ./venv/bin/python -m pip install -r backend/requirements.txt
 
   echo "${CYAN}[*]${RESET} Instalando Chromium para Playwright (puede tardar 1-2 min la primera vez)..."
   ./venv/bin/python -m playwright install chromium
 else
   echo "${GREEN}[OK]${RESET} venv existente"
 fi
+
+# ============================================================
+# 2b) Verificar binario de Chromium (idempotente)
+# ============================================================
+# CAMBIO: si actualizaste playwright en backend/requirements.txt
+# pero no reinstalaste Chromium, el binario queda desincronizado
+# y el scraper falla con "Executable doesn't exist" mostrando
+# "Total: 0 partidos" sin más pistas. Esta línea es idempotente:
+# si el binario ya está, no descarga nada (2-3 s como mucho).
+echo "${CYAN}[*]${RESET} Verificando binario de Chromium..."
+./venv/bin/python -m playwright install chromium
 
 # ============================================================
 # 3) Verificar archivos críticos del backend
@@ -105,7 +116,7 @@ echo "${GREEN}[OK]${RESET} Archivos del backend presentes"
 echo "${CYAN}[*]${RESET} Verificando dependencias..."
 if ! ./venv/bin/python -c "import fastapi, uvicorn, playwright, httpx" 2>/dev/null; then
   echo "${YELLOW}[!]${RESET} Faltan dependencias. Instalando..."
-  ./venv/bin/python -m pip install -r requirements.txt
+  ./venv/bin/python -m pip install -r backend/requirements.txt
   ./venv/bin/python -m playwright install chromium
 fi
 

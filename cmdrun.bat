@@ -12,7 +12,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0run.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0winrun.ps1"
 set EXITCODE=%errorlevel%
 
 echo.
