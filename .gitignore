@@ -1,26 +1,73 @@
-cat >> .gitignore <<'EOF'
-
-# Entornos virtuales de Python
+# ============================================================
+# Python
+# ============================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
 venv/
 .venv/
 env/
 ENV/
-
-# Archivos generados por Python
-__pycache__/
-*.py[cod]
+build/
+dist/
+*.egg-info/
 .pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.coverage
-htmlcov/
 
-# Credenciales y variables de entorno
+# ============================================================
+# Node (por si añades tests o build en el futuro)
+# ============================================================
+node_modules/
+package-lock.json
+yarn.lock
+
+# ============================================================
+# Logs (locales, no se suben)
+# ============================================================
+*.log
+backend.log
+frontend.log
+
+# ============================================================
+# Entorno (secretos locales)
+# ============================================================
 .env
 .env.*
 !.env.example
 
-# Archivos temporales y registros locales
+# ============================================================
+# IDE / SO
+# ============================================================
+.vscode/
+.idea/
+*.swp
+*.swo
 .DS_Store
-*.log
-EOF
+Thumbs.db
+desktop.ini
+
+# ============================================================
+# Playwright
+# ============================================================
+playwright-report/
+test-results/
+.playwright/
+
+# ============================================================
+# Netlify / Vercel (caches locales)
+# ============================================================
+.netlify/
+.vercel/
+
+# ============================================================
+# IMPORTANTE: estos SÍ deben subirse (no ignorar)
+# ============================================================
+# - backend/           → código fuente del backend
+# - frontend/          → frontend estático (index.html, manifest, sw.js, offline.html)
+# - Dockerfile         → para Render
+# - render.yaml        → para Render
+# - netlify.toml       → para Netlify
+# - requirements.txt   → para pip
+# - run.sh             → para desarrollo local
+# - .env.example       → documentación de variables

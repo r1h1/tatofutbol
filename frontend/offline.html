@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#0a0a0a"/>
+<meta name="robots" content="noindex"/>
+<title>TatoDeportes — Sin conexión</title>
+<style>
+:root{
+  --bg:#0a0a0a;
+  --text:#fff;
+  --text-secondary:#b0b0b0;
+  --brand:#b7f35a;
+  --brand-ink:#15200d;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+main{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:24px;text-align:center}
+.brand{display:inline-flex;align-items:center;gap:12px;margin-bottom:8px}
+.brand-mark{width:56px;height:56px;border-radius:14px;background:var(--brand);color:var(--brand-ink);display:flex;align-items:center;justify-content:center}
+.brand-mark svg{width:36px;height:36px}
+.brand-name{font-size:24px;font-weight:900;letter-spacing:-.03em}
+h1{margin:0;font-size:clamp(24px,4vw,32px);font-weight:800;letter-spacing:-.02em}
+p{margin:0;max-width:40ch;line-height:1.55;color:var(--text-secondary);font-size:15px}
+.icon-wrap{width:96px;height:96px;border-radius:50%;background:rgba(183,243,90,.1);display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+.icon-wrap svg{width:48px;height:48px;color:var(--brand)}
+.actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 28px;border-radius:8px;font-weight:700;font-size:15px;text-decoration:none;border:none;cursor:pointer;transition:background .15s}
+.btn-primary{background:var(--brand);color:var(--brand-ink)}
+.btn-primary:hover{background:#c7f878}
+.btn-secondary{background:rgba(255,255,255,.08);color:var(--text);border:1px solid rgba(255,255,255,.15)}
+.btn-secondary:hover{background:rgba(255,255,255,.15)}
+.btn svg{width:16px;height:16px}
+@media (max-width:480px){
+  main{padding:20px}
+  .brand-mark{width:48px;height:48px}
+  .brand-mark svg{width:30px;height:30px}
+  .brand-name{font-size:20px}
+  .icon-wrap{width:80px;height:80px}
+  .icon-wrap svg{width:40px;height:40px}
+}
+</style>
+</head>
+<body>
+<main>
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="10" fill="currentColor"/>
+        <path d="M12 6.5l-2.3 1.6.9 2.7h2.8l.9-2.7z" fill="#b7f35a"/>
+        <path d="M7.2 9.5l1.7 1.6-.5 2.4-2.3.5c-.5-1.4-.4-3 .3-4.4z" fill="#b7f35a"/>
+        <path d="M16.8 9.5c.7 1.4.8 3 .3 4.4l-2.3-.5-.5-2.4z" fill="#b7f35a"/>
+        <path d="M9.5 16.5l1.5-1.5h2l1.5 1.5-1 1.5h-3z" fill="#b7f35a"/>
+      </svg>
+    </span>
+    <span class="brand-name">TatoDeportes</span>
+  </div>
+
+  <div class="icon-wrap" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+      <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+      <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+      <line x1="12" y1="20" x2="12.01" y2="20"/>
+    </svg>
+  </div>
+
+  <h1>Sin conexión</h1>
+  <p>No hay internet y esta pantalla todavía no estaba guardada en el dispositivo. Conéctate y vuelve a intentarlo.</p>
+
+  <div class="actions">
+    <button type="button" class="btn btn-primary" onclick="window.location.reload()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="23 4 23 10 17 10"/>
+        <polyline points="1 20 1 14 7 14"/>
+        <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>
+      </svg>
+      Reintentar
+    </button>
+    <a href="./" class="btn btn-secondary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 11l9-7 9 7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 21 9 13 15 13 15 21"/>
+      </svg>
+      Ir al inicio
+    </a>
+  </div>
+</main>
+</body>
+</html>

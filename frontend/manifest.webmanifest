@@ -1,0 +1,102 @@
+{
+  "name": "TatoDeportes — Deportes en Vivo",
+  "short_name": "TatoDeportes",
+  "description": "Agenda deportiva en vivo: fútbol, basketball, hockey, béisbol y MMA. Sin registro, gratis.",
+  "lang": "es",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "any",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "categories": ["sports", "entertainment", "video"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20192%20192'%3E%3Crect%20width='192'%20height='192'%20rx='32'%20fill='%23b7f35a'/%3E%3Cg%20fill='%2315200d'%3E%3Cpolygon%20points='96,67%20120,83.5%20110.4,111%2081.6,111%2072,83.5'/%3E%3Cpolygon%20points='72,83.5%2043.2,72%2028.8,96%2048,124.8%2081.6,111'/%3E%3Cpolygon%20points='120,83.5%20148.8,72%20163.2,96%20144,124.8%20110.4,111'/%3E%3Cpolygon%20points='81.6,111%20110.4,111%20120,144%2096,168%2072,144'/%3E%3C/g%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20512%20512'%3E%3Crect%20width='512'%20height='512'%20rx='96'%20fill='%23b7f35a'/%3E%3Cg%20fill='%2315200d'%3E%3Cpolygon%20points='256,179%20320,223%20294,294%20218,294%20192,223'/%3E%3Cpolygon%20points='192,223%20115,192%2077,256%20128,333%20218,294'/%3E%3Cpolygon%20points='320,223%20397,192%20435,256%20384,333%20294,294'/%3E%3Cpolygon%20points='218,294%20294,294%20320,384%20256,448%20192,384'/%3E%3C/g%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20512%20512'%3E%3Crect%20width='512'%20height='512'%20fill='%23b7f35a'/%3E%3Cg%20fill='%2315200d'%3E%3Cpolygon%20points='256,205%20308,240%20287,297%20225,297%20204,240'/%3E%3Cpolygon%20points='204,240%20141,215%20110,268%20152,331%20225,297'/%3E%3Cpolygon%20points='308,240%20371,215%20402,268%20360,331%20287,297'/%3E%3Cpolygon%20points='225,297%20287,297%20308,370%20256,423%20204,370'/%3E%3C/g%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Fútbol",
+      "short_name": "Fútbol",
+      "description": "Ver partidos de fútbol en vivo",
+      "url": "./?sport=football",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2096%2096'%3E%3Crect%20width='96'%20height='96'%20rx='20'%20fill='%23b7f35a'/%3E%3Cg%20fill='none'%20stroke='%2315200d'%20stroke-width='5'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Ccircle%20cx='48'%20cy='48'%20r='32'/%3E%3Cpath%20d='M48 30l-9 6.5 3.6 10.5h10.8L57 36.5z'/%3E%3C/g%3E%3C/svg%3E",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Basketball",
+      "short_name": "Basket",
+      "description": "Ver partidos de NBA en vivo",
+      "url": "./?sport=basketball",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2096%2096'%3E%3Crect%20width='96'%20height='96'%20rx='20'%20fill='%23f4a261'/%3E%3Cg%20fill='none'%20stroke='%2315200d'%20stroke-width='5'%20stroke-linecap='round'%3E%3Ccircle%20cx='48'%20cy='48'%20r='32'/%3E%3Cpath%20d='M48 16v64M16 48h64'/%3E%3C/g%3E%3C/svg%3E",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Hockey",
+      "short_name": "Hockey",
+      "description": "Ver partidos de NHL en vivo",
+      "url": "./?sport=hockey",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2096%2096'%3E%3Crect%20width='96'%20height='96'%20rx='20'%20fill='%23a8dadc'/%3E%3Cg%20fill='none'%20stroke='%2315200d'%20stroke-width='5'%20stroke-linecap='round'%3E%3Cellipse%20cx='36'%20cy='72'%20rx='20'%20ry='8'/%3E%3Cpath%20d='M56 16l-16 48M56 16h12'/%3E%3C/g%3E%3C/svg%3E",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Béisbol",
+      "short_name": "Béisbol",
+      "description": "Ver partidos de MLB en vivo",
+      "url": "./?sport=baseball",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2096%2096'%3E%3Crect%20width='96'%20height='96'%20rx='20'%20fill='%23e9c46a'/%3E%3Cg%20fill='none'%20stroke='%2315200d'%20stroke-width='5'%20stroke-linecap='round'%3E%3Ccircle%20cx='48'%20cy='48'%20r='32'/%3E%3Cpath%20d='M24 20c10 16 10 40 0 56M72 20c-10 16-10 40 0 56'/%3E%3C/g%3E%3C/svg%3E",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "MMA / UFC",
+      "short_name": "MMA",
+      "description": "Ver peleas de UFC en vivo",
+      "url": "./?sport=mma",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2096%2096'%3E%3Crect%20width='96'%20height='96'%20rx='20'%20fill='%239b5de5'/%3E%3Cg%20fill='none'%20stroke='%2315200d'%20stroke-width='5'%20stroke-linecap='round'%3E%3Cpath%20d='M28 12h40l16 16v40l-16 16H28L12 68V28z'/%3E%3Cpath%20d='M36 36l24 24M60 36L36 60'/%3E%3C/g%3E%3C/svg%3E",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ]
+}

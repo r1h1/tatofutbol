@@ -1,6 +1,9 @@
 # backend/main.py
 """
-Servidor local del sistema de streaming deportivo (tesis Tato Futbol).
+Servidor FastAPI multi-deporte para streaming deportivo.
+
+Compatible con la versión de producción: los endpoints existentes siguen
+funcionando exactamente igual para fútbol (sport="football" por defecto).
 """
 from __future__ import annotations
 
@@ -22,22 +25,34 @@ from .scraper import (
     get_matches_with_servers,
     resolve_servers,
 )
+from .sports_config import is_valid_sport, list_sports
 from .thumbnails import resolve_thumbnail
 
 # ============================================================
 # Configuración
 # ============================================================
-app = FastAPI(title="Tato Futbol — Tesis")
+app = FastAPI(title="Tato Futbol — Multi-sport", version="2.0.0")
+
+# CORS configurable vía env (ALLOWED_ORIGINS separado por comas)
+_ALLOWED_RAW = os.environ.get(
+    "ALLOWED_ORIGINS",
+    "http://localhost:5500,http://127.0.0.1:5500,http://localhost:3000",
+).strip()
+ALLOWED_ORIGINS = [o.strip() for o in _ALLOWED_RAW.split(",") if o.strip()]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
-UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-      "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+UA = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+)
 
 MATCH_VISIBLE_MINUTES = int(os.environ.get("MATCH_VISIBLE_MINUTES", "200"))
 LIVE_WINDOW_MINUTES = 120
@@ -47,14 +62,21 @@ MATCHES_TTL = 300       # 5 min
 SERVERS_TTL = 600       # 10 min
 STREAM_TTL = 1800       # 30 min
 
-_match_cache: Dict = {"data": [], "ts": 0}
+# Cachés en memoria, todas separadas por deporte cuando aplica.
+# _match_cache:     {"football": {"data": [...], "ts": 123}, "basketball": {...}}
+# _servers_cache:   {"football::https://...": {"data": [...], "ts": 123}}
+# _stream_cache:    {"https://...m3u8": {"url": "...", "ts": 123}}
+_match_cache: Dict[str, Dict] = {}
 _servers_cache: Dict[str, Dict] = {}
 _stream_cache: Dict[str, Dict] = {}
 
+
 # ============================================================
-# Filtro y ordenamiento de partidos
+# Filtro y ordenamiento de partidos (idéntico a producción)
 # ============================================================
-def _parse_match_minutes(time_str: Optional[str], now: Optional[datetime] = None) -> Optional[float]:
+def _parse_match_minutes(
+    time_str: Optional[str], now: Optional[datetime] = None
+) -> Optional[float]:
     if not time_str:
         return None
     try:
@@ -68,6 +90,7 @@ def _parse_match_minutes(time_str: Optional[str], now: Optional[datetime] = None
     except Exception:
         return None
 
+
 def _status_for(delta_min: Optional[float]) -> str:
     if delta_min is None:
         return "unknown"
@@ -76,6 +99,7 @@ def _status_for(delta_min: Optional[float]) -> str:
     if delta_min < -5:
         return "upcoming"
     return "recent"
+
 
 def _match_sort_key(m: Dict):
     delta = m.get("_delta_min")
@@ -87,6 +111,7 @@ def _match_sort_key(m: Dict):
     if status == "upcoming":
         return (1, -delta)
     return (2, delta)
+
 
 def _filter_and_sort_matches(matches: List[Dict]) -> List[Dict]:
     now = datetime.now()
@@ -108,8 +133,9 @@ def _filter_and_sort_matches(matches: List[Dict]) -> List[Dict]:
         out.append(clean)
     return out
 
+
 # ============================================================
-# Proxy HLS
+# Proxy HLS (idéntico a producción)
 # ============================================================
 def _headers_for(url: str) -> Dict[str, str]:
     host = f"{urlparse(url).scheme}://{urlparse(url).netloc}"
@@ -122,10 +148,14 @@ def _headers_for(url: str) -> Dict[str, str]:
         "Connection": "keep-alive",
     }
 
+
 def _proxy_url(raw_url: str) -> str:
     return f"/api/proxy?url={quote(raw_url, safe='')}"
 
-def _trim_live_media_playlist(lines: List[str], max_segments: int = LIVE_WINDOW_SEGMENTS) -> List[str]:
+
+def _trim_live_media_playlist(
+    lines: List[str], max_segments: int = LIVE_WINDOW_SEGMENTS
+) -> List[str]:
     is_vod = any(l.strip() == "#EXT-X-ENDLIST" for l in lines)
     is_master = any(l.strip().startswith("#EXT-X-STREAM-INF") for l in lines)
     if is_vod or is_master:
@@ -169,6 +199,7 @@ def _trim_live_media_playlist(lines: List[str], max_segments: int = LIVE_WINDOW_
 
     return new_header + kept
 
+
 def _rewrite_playlist(content: str, base_url: str) -> str:
     lines = content.splitlines()
     lines = _trim_live_media_playlist(lines)
@@ -191,17 +222,25 @@ def _rewrite_playlist(content: str, base_url: str) -> str:
             out.append(_proxy_url(urljoin(base_url, raw)))
     return "\n".join(out)
 
-async def _fetch_with_retries(url: str, attempts: int = 3, timeout: float = 20.0) -> httpx.Response:
+
+async def _fetch_with_retries(
+    url: str, attempts: int = 3, timeout: float = 20.0
+) -> httpx.Response:
     last_err = None
     for i in range(attempts):
         try:
-            async with httpx.AsyncClient(timeout=timeout, follow_redirects=True, http2=False) as client:
+            async with httpx.AsyncClient(
+                timeout=timeout, follow_redirects=True, http2=False
+            ) as client:
                 req = client.build_request("GET", url, headers=_headers_for(url))
                 resp = await client.send(req, stream=False)
                 if resp.status_code == 200:
                     return resp
                 if resp.status_code in (403, 404):
-                    raise HTTPException(resp.status_code, f"Servidor de origen devolvió {resp.status_code}")
+                    raise HTTPException(
+                        resp.status_code,
+                        f"Servidor de origen devolvió {resp.status_code}",
+                    )
                 last_err = f"HTTP {resp.status_code}"
         except HTTPException:
             raise
@@ -211,43 +250,95 @@ async def _fetch_with_retries(url: str, attempts: int = 3, timeout: float = 20.0
             await asyncio.sleep(0.3 * (i + 1))
     raise HTTPException(502, f"Upstream falló tras {attempts} intentos: {last_err}")
 
+
 # ============================================================
 # Endpoints
 # ============================================================
+@app.get("/api/sports")
+async def api_sports():
+    """
+    Lista de perfiles de deporte disponibles.
+    El frontend usa esta lista para construir el selector de perfiles.
+
+    Respuesta:
+        [
+          {"key": "football",   "display_name": "Fútbol",     "icon": "football",   "accent": "#b7f35a"},
+          {"key": "basketball", "display_name": "Basketball", "icon": "basketball", "accent": "#f4a261"},
+          ...
+        ]
+    """
+    return list_sports()
+
+
 @app.get("/api/matches")
-async def api_matches(all: int = 0):
+async def api_matches(
+    sport: str = Query("football"),
+    all: int = 0,
+    force: int = 0,
+):
+    """
+    Agenda filtrada de un deporte.
+
+    Parámetros:
+      - sport: clave de deporte. Default "football" (compat con producción).
+      - all=1: devuelve todos los partidos sin filtrar (debug).
+      - force=1: ignora la caché y vuelve a scrapear.
+    """
+    sport = (sport or "football").strip().lower()
+    if not is_valid_sport(sport):
+        raise HTTPException(400, f"Deporte no soportado: {sport}")
+
     now = time.time()
-    if now - _match_cache["ts"] < MATCHES_TTL and _match_cache["data"]:
-        data = _match_cache["data"]
+    cache = _match_cache.get(sport) or {"data": [], "ts": 0}
+    needs_refresh = bool(force) or not cache["data"] or (now - cache["ts"] >= MATCHES_TTL)
+
+    if not needs_refresh:
+        data = cache["data"]
     else:
-        data = await get_match_list()
-        _match_cache["data"] = data
-        _match_cache["ts"] = now
+        data = await get_match_list(sport)
+        _match_cache[sport] = {"data": data, "ts": now}
 
     if all:
         return data
     return _filter_and_sort_matches(data)
 
+
 @app.get("/api/servers")
 async def api_servers(
     match_url: str = Query(...),
+    sport: str = Query("football"),
     source: str = Query("roja"),
     force: int = Query(0),
 ):
+    """
+    Lista de servidores resueltos para un partido.
+
+    Parámetros:
+      - match_url: URL del embed del partido.
+      - sport: clave de deporte (para buscar en la caché correcta).
+      - force=1: ignora la caché de servidores.
+    """
+    sport = (sport or "football").strip().lower()
+    if not is_valid_sport(sport):
+        raise HTTPException(400, f"Deporte no soportado: {sport}")
+
     now = time.time()
+    cache_key = f"{sport}::{match_url}"
+
     if not force:
-        cached = _servers_cache.get(match_url)
+        cached = _servers_cache.get(cache_key)
         if cached and now - cached["ts"] < SERVERS_TTL:
             return cached["data"]
 
-    matches: List[Dict] = _match_cache["data"] or []
-    if not matches or now - _match_cache["ts"] >= MATCHES_TTL:
-        matches = await get_match_list()
-        _match_cache["data"] = matches
-        _match_cache["ts"] = now
+    sport_cache = _match_cache.get(sport) or {"data": [], "ts": 0}
+    matches: List[Dict] = sport_cache["data"] or []
+    if not matches or now - sport_cache["ts"] >= MATCHES_TTL:
+        matches = await get_match_list(sport)
+        _match_cache[sport] = {"data": matches, "ts": now}
 
     target = next((m for m in matches if m.get("match_url") == match_url), None)
     if not target:
+        # Fallback: usar match_url como único embed.
         target = {"servers": [{"name": "Servidor principal", "embed_url": match_url}]}
 
     servers_in = target.get("servers") or []
@@ -262,39 +353,60 @@ async def api_servers(
         2
     ))
 
-    _servers_cache[match_url] = {"data": resolved, "ts": now}
+    _servers_cache[cache_key] = {"data": resolved, "ts": now}
     return resolved
+
 
 @app.get("/api/resolve")
 async def api_resolve(match_url: str = Query(...)):
+    """
+    Resuelve un match_url a un stream_url HLS. Universal (no depende del deporte).
+    """
     now = time.time()
     cached = _stream_cache.get(match_url)
     if cached and now - cached["ts"] < STREAM_TTL:
         return {"stream_url": cached["url"]}
 
     try:
-        results = await resolve_servers([{"name": "Servidor principal", "embed_url": match_url}])
+        results = await resolve_servers(
+            [{"name": "Servidor principal", "embed_url": match_url}]
+        )
     except Exception as e:
         raise HTTPException(500, f"Error resolviendo stream: {e}")
 
     for r in results:
         if r.get("working") and r.get("stream_url"):
             _stream_cache[match_url] = {"url": r["stream_url"], "ts": now}
-            return {"stream_url": r["stream_url"], "language": r.get("language", "unknown")}
+            return {
+                "stream_url": r["stream_url"],
+                "language": r.get("language", "unknown"),
+            }
 
     raise HTTPException(404, "No se pudo resolver el stream de este partido.")
 
+
 @app.get("/api/proxy")
 async def api_proxy(url: str = Query(...)):
+    """
+    Proxy HLS universal (playlists, segmentos, keys). Sin cambios.
+    """
     resp = await _fetch_with_retries(url)
     content_type = (resp.headers.get("content-type") or "").lower()
 
-    is_playlist = ".m3u8" in url or "mpegurl" in content_type or url.lower().endswith(".m3u")
+    is_playlist = (
+        ".m3u8" in url
+        or "mpegurl" in content_type
+        or url.lower().endswith(".m3u")
+    )
 
     if is_playlist:
         text = resp.content.decode("utf-8", errors="ignore")
         new_text = _rewrite_playlist(text, str(resp.url))
-        return Response(content=new_text, media_type="application/vnd.apple.mpegurl", headers={"Cache-Control": "no-store"})
+        return Response(
+            content=new_text,
+            media_type="application/vnd.apple.mpegurl",
+            headers={"Cache-Control": "no-store"},
+        )
 
     if ".key" in url or "key" in content_type:
         media_type = "application/octet-stream"
@@ -305,12 +417,31 @@ async def api_proxy(url: str = Query(...)):
     else:
         media_type = "video/mp2t"
 
-    return Response(content=resp.content, media_type=media_type, headers={"Content-Length": str(len(resp.content)), "Cache-Control": "public, max-age=30"})
+    return Response(
+        content=resp.content,
+        media_type=media_type,
+        headers={
+            "Content-Length": str(len(resp.content)),
+            "Cache-Control": "public, max-age=30",
+        },
+    )
+
 
 @app.get("/api/thumbnail")
 async def api_thumbnail(title: str = Query(...), league: str = Query("")):
     return await resolve_thumbnail(title, league)
 
+
 @app.get("/")
 async def root():
-    return {"app": "Tato Futbol", "status": "ok"}
+    return {
+        "app": "Tato Futbol",
+        "status": "ok",
+        "sports": [s["key"] for s in list_sports()],
+        "allowed_origins": ALLOWED_ORIGINS,
+    }
+
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy", "ts": time.time()}

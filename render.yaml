@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: tato-deportes-backend
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: HEADLESS
+        value: "1"
+      - key: MATCH_VISIBLE_MINUTES
+        value: "200"
+      - key: LIVE_WINDOW_SEGMENTS
+        value: "4"
+      # ⚠️ IMPORTANTE: este valor debe reemplazarse en el dashboard de Render
+      # después del primer deploy del frontend en Netlify.
+      # Formato: URLs separadas por coma SIN espacios.
+      # Ejemplo: https://tato-futbol.netlify.app,http://localhost:5500
+      - key: ALLOWED_ORIGINS
+        sync: false
