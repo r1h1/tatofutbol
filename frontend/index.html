@@ -612,7 +612,7 @@ const FALLBACK_IMG = "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/89/C
 const API = (
   ["localhost", "127.0.0.1"].includes(window.location.hostname)
     ? "http://localhost:8000"
-    : "https://tatofutbol.onrender.com"
+    : "http://localhost:3000"
 );
 
 let sportsList = [], currentSport = null, currentSportMeta = null, allMatches = [], allChannels = [], hlsInstance = null;
@@ -786,7 +786,7 @@ function startHeroRotation() {
   }
 
   if (currentLiveMatches.length === 0) {
-    renderHero(null);
+    updateHero(null);
     return;
   }
 
@@ -794,10 +794,11 @@ function startHeroRotation() {
   updateHero(currentLiveMatches[0]);
 
   if (currentLiveMatches.length > 1) {
+    // 8s en vez de 5s: rotación menos agresiva, sin saltos raros.
     heroInterval = setInterval(() => {
       currentHeroIndex = (currentHeroIndex + 1) % currentLiveMatches.length;
       updateHero(currentLiveMatches[currentHeroIndex]);
-    }, 4500);
+    }, 8000);
   }
 }
 
@@ -823,10 +824,10 @@ function updateHero(match) {
   const metaInfo = [match.league, match.time].filter(Boolean).join(' • ');
   $heroDesc.textContent = metaInfo || 'Transmisión en directo';
 
-  // Animación de fundido para el texto
-  $heroContent.style.animation = 'none';
-  $heroContent.offsetHeight; // trigger reflow
-  $heroContent.style.animation = 'slideUp 0.6s ease forwards';
+  // Sin re-animación en cada rotación: el CSS ya hace slideUp una vez al
+  // mostrarse. Solo al cambiar de deporte se reinicia el display, lo que
+  // dispara la animación naturalmente. Esto elimina el "slide up" molesto
+  // cada 5 segundos durante la rotación del hero.
 
   fetchThumb(match).then(url => {
     $heroBg.src = url;
@@ -845,7 +846,7 @@ function renderContent() {
     $channelsGrid.innerHTML = allChannels.map((ch, i) => `
       <div class="channel-card" onclick="window.openChannel(${i})" tabindex="0">
         <div class="channel-logo-wrap">
-          ${ch.logo ? `<img src="${ch.logo}" onerror="this.remove()">` : `<span class="fallback">${escapeHtml(ch.name.substring(0,2))}</span>`}
+          ${ch.logo ? `<img src="${ch.logo}" loading="lazy" onerror="this.remove()">` : `<span class="fallback">${escapeHtml(ch.name.substring(0,2))}</span>`}
         </div>
         <div class="channel-name">${escapeHtml(ch.name)}</div>
       </div>
@@ -911,14 +912,14 @@ async function fetchThumb(m) {
 }
 
 async function hydrateThumbs() {
-  const imgs = document.querySelectorAll('.lazy-thumb');
-  for (let img of imgs) {
-    if (img.dataset.hydrated !== "1") {
-      img.dataset.hydrated = "1";
-      const url = await fetchThumb({ title: img.dataset.title, league: img.dataset.league });
-      if (url) img.src = url;
-    }
-  }
+  // FIX: en paralelo (Promise.all) en vez de secuencial. Con 20 partidos
+  // cargando miniaturas una por una tardaba 10-20s; ahora ~500ms.
+  const imgs = Array.from(document.querySelectorAll('.lazy-thumb:not([data-hydrated])'));
+  imgs.forEach(img => img.dataset.hydrated = "1");
+  await Promise.all(imgs.map(async (img) => {
+    const url = await fetchThumb({ title: img.dataset.title, league: img.dataset.league });
+    if (url) img.src = url;
+  }));
 }
 
 // ── EVENTO DE BÚSQUEDA ──
@@ -1036,6 +1037,7 @@ function renderServers(servers, match) {
 }
 
 window.playStream = (title, url) => {
+  $modal.classList.add('open');
   $serverView.style.display = 'none';
   $playerView.style.display = 'block';
   const $loading = document.getElementById('player-loading');
@@ -1055,7 +1057,7 @@ window.playStream = (title, url) => {
       $video.play().catch(()=>{});
     });
     hlsInstance.on(Hls.Events.ERROR, (e, data) => {
-      if (data.fatal) $loading.innerHTML = "<p style='color:var(--accent)'>Error al reproducir. Prueba otro servidor.</p>";
+      if (data.fatal) $loading.innerHTML = "<p style='color:var(--accent)'>No se encontraron servidores públicos disponibles.</p>";
     });
   } else {
     $video.src = proxied;

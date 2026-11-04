@@ -38,6 +38,34 @@ _CLUB_SUFFIXES = re.compile(
     re.IGNORECASE,
 )
 
+# Palabras clave que aparecen en las CATEGORÍAS de Wikipedia cuando la
+# página es realmente sobre un equipo deportivo (no un animal, ciudad, etc.).
+# Sin este filtro, "Venados" devuelve la foto de un ciervo en vez del escudo.
+_TEAM_CATEGORY_KEYWORDS = (
+    "fútbol", "futbol", "football", "soccer", "balompié", "balompie",
+    "clubes de", "equipos de", "club de", "equipo de",
+    "clubes", "equipos",
+    "deportivo", "deportiva",
+    "atlético", "atletico",
+    "liga", "división", "division",
+    "nba", "nfl", "mlb", "nhl", "mls",
+    "baloncesto", "básquet", "basketball",
+    "béisbol", "beisbol", "baseball",
+    "hockey", "hielo",
+)
+
+
+def _is_sports_team_page(page: dict) -> bool:
+    """Heurística: la página de Wikipedia es de un equipo deportivo."""
+    categories = page.get("categories", [])
+    for cat in categories:
+        title = (cat.get("title") or "").lower()
+        for kw in _TEAM_CATEGORY_KEYWORDS:
+            if kw in title:
+                return True
+    return False
+
+
 def _split_title(title: str) -> Tuple[str, str]:
     t = (title or "").strip()
     if ":" in t and len(t.split(":", 1)[0]) < 40:
@@ -67,10 +95,16 @@ async def _wikipedia_image(team_name: str, lang: str) -> Optional[str]:
         if _team_cache[cache_key] is not None and (now - cached_at) < TEAM_TTL:
             return _team_cache[cache_key]
 
-    candidates = [team_name]
-    cleaned = _clean_team_name(team_name)
-    if cleaned != team_name:
-        candidates.append(cleaned)
+    # Variantes a probar: nombre limpio, sufijos de desambiguación y original.
+    # Ej: "Venados" → "Venados" (ciervo, rechazado) → "Venados FC" (club real).
+    base = _clean_team_name(team_name) or team_name
+    candidates = [
+        base,
+        f"{base} FC",
+        f"{base} (fútbol)",
+        team_name,
+    ]
+    candidates = list(dict.fromkeys(candidates))  # dedupe preservando orden
 
     client = _get_client()
 
@@ -79,10 +113,11 @@ async def _wikipedia_image(team_name: str, lang: str) -> Optional[str]:
             params = {
                 "action": "query",
                 "titles": candidate,
-                "prop": "pageimages",
+                "prop": "pageimages|categories",
                 "format": "json",
                 "pithumbsize": 600,
                 "redirects": 1,
+                "cllimit": 50,
             }
             url = f"https://{lang}.wikipedia.org/w/api.php"
             r = await client.get(url, params=params)
@@ -94,10 +129,15 @@ async def _wikipedia_image(team_name: str, lang: str) -> Optional[str]:
                 if page_id == "-1":
                     continue
                 thumb = page.get("thumbnail", {}).get("source")
-                if thumb:
-                    _team_cache[cache_key] = thumb
-                    _team_ts[cache_key] = now
-                    return thumb
+                if not thumb:
+                    continue
+                # Rechazar páginas que NO son de equipos deportivos
+                # (ej: "Venados" = ciervo, "Tigres" = felino, "Águilas" = ave).
+                if not _is_sports_team_page(page):
+                    continue
+                _team_cache[cache_key] = thumb
+                _team_ts[cache_key] = now
+                return thumb
         except Exception:
             pass
 
