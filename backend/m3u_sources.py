@@ -1,5 +1,5 @@
 # backend/m3u_sources.py
-"""Canales M3U8 en vivo desde listas públicas + canales manuales garantizados."""
+"""Canales M3U8 en vivo desde listas publicas + canales manuales garantizados."""
 from __future__ import annotations
 import re, time
 from typing import Dict, List, Optional
@@ -14,12 +14,11 @@ _cache: Dict = {"data": [], "ts": 0, "error": None}
 SPORT_KEYWORDS: Dict[str, List[str]] = {
     "football": ["fox deportes", "tyc sports", "espn deportes", "tudn", "movistar deportes", "dazn", "laliga", "premier league", "gol tv", "goltv", "beinsports", "bein sports", "sky sports", "fox sports", "dsports", "directv sports", "win sports", "telefe", "espn", "espn2", "espn3", "espn4", "espn5", "espn extra", "fox sports 1", "fox sports 2", "tnt sports", "eurosport", "dazn 1", "dazn 2", "dazn 3", "tyc", "rcn", "caracol", "ligamax", "espn premium", "star+", "star plus", "paramount+", "movistar plus", "sportv", "sportv2", "sportv3", "band sports", "espn brasil", "fox sports brasil", "tnt sports brasil", "champions", "europa league", "libertadores", "sudamericana", "copa america", "mundial", "world cup", "fifa"],
     "basketball": ["nba tv", "nba", "euroleague", "eurobasket", "ncaa", "march madness", "espn", "espn2", "espn3", "tnt", "abc", "movistar deportes", "fox deportes", "dsports", "directv sports", "tudn", "dazn nba", "tnt sports", "space", "combate", "nba league pass", "basketball", "basket", "baloncesto"],
-    "hockey": ["nhl", "nhl network", "sportsnet", "tsn", "tsn 1", "tsn 2", "tsn 3", "tsn 4", "tsn 5", "rds", "viaplay", "hockey"],
+    "nhl": ["nhl", "nhl network", "sportsnet", "tsn", "tsn 1", "tsn 2", "tsn 3", "tsn 4", "tsn 5", "rds", "viaplay", "hockey"],
     "baseball": ["mlb", "mlb network", "espn", "fox sports", "tbs", "dazn mlb", "tyc sports", "dsports", "directv sports", "baseball", "beisbol", "mlb tv"],
     "mma": ["ufc", "ufc fight pass", "fight pass", "fite", "combate", "dazn ufc", "espn+", "tnt sports ufc", "bellator", "pfl", "one championship", "ufc latinoamerica", "ufc mexico", "ufc brasil", "mma", "pelea", "boxing", "boxeo", "wwe", "aew"],
 }
 
-# Canales manuales garantizados (funcionan independientemente de iptv-org)
 MANUAL_CHANNELS: Dict[str, List[Dict]] = {
     "football": [
         {"name": "ESPN", "logo": "", "url": "https://101.mipsplayer.net:8688/adfree/espn2hdd/playlist.m3u8?id=269635&pk=bfc7fe314d587e6431467746542de5799b3bc0ea3227b29788b2fb09c723c34d", "sport": "football", "source": "manual"},
@@ -29,7 +28,7 @@ MANUAL_CHANNELS: Dict[str, List[Dict]] = {
     "basketball": [
         {"name": "ESPN", "logo": "", "url": "https://101.mipsplayer.net:8688/adfree/espn2hdd/playlist.m3u8?id=269635&pk=bfc7fe314d587e6431467746542de5799b3bc0ea3227b29788b2fb09c723c34d", "sport": "basketball", "source": "manual"},
     ],
-    "hockey": [], "baseball": [], "mma": [],
+    "nhl": [], "baseball": [], "mma": [],
 }
 
 
@@ -97,12 +96,10 @@ async def get_channels_for_sport(sport: str, force: bool = False) -> List[Dict]:
             all_ch = _cache["data"] or []
 
     result, seen = [], set()
-    # Canales de iptv-org
     for ch in all_ch:
         if _classify(ch) == sport and ch["url"] not in seen:
             seen.add(ch["url"])
             result.append({"name": ch["name"], "logo": ch.get("logo",""), "url": ch["url"], "sport": sport, "source": "iptv-org"})
-    # Canales manuales garantizados
     for ch in MANUAL_CHANNELS.get(sport, []):
         if ch["url"] not in seen:
             seen.add(ch["url"]); result.append(ch)

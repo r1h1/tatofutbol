@@ -2,8 +2,8 @@
 """
 Servidor FastAPI multi-deporte para streaming deportivo.
 
-Compatible con la versión de producción: los endpoints existentes siguen
-funcionando exactamente igual para fútbol (sport="football" por defecto).
+Compatible con la version de produccion: los endpoints existentes siguen
+funcionando exactamente igual para futbol (sport="football" por defecto).
 """
 from __future__ import annotations
 
@@ -28,18 +28,19 @@ from .scraper import (
 from .m3u_sources import get_channels_for_sport
 from .sports_config import is_valid_sport, list_sports
 from .thumbnails import resolve_thumbnail
+from .news import get_news_for_sport
 
 # ============================================================
-# Configuración
+# Configuracion
 # ============================================================
-app = FastAPI(title="Tato Futbol — Multi-sport", version="2.0.0")
+app = FastAPI(title="Tato Futbol - Multi-sport", version="2.0.0")
 
-# CORS configurable vía env (ALLOWED_ORIGINS separado por comas)
+# CORS configurable via env (ALLOWED_ORIGINS separado por comas)
 _ALLOWED_RAW = os.environ.get(
     "ALLOWED_ORIGINS",
     "http://localhost:5500,http://127.0.0.1:5500,http://localhost:3000",
 ).strip()
-# CAMBIO: rstrip("/") para que "https://tatotv.netlify.app/" (con barra)
+# rstrip("/") para que "https://tatotv.netlify.app/" (con barra)
 # coincida con el header Origin del navegador, que NUNCA lleva barra final.
 ALLOWED_ORIGINS = [
     o.strip().rstrip("/")
@@ -68,18 +69,23 @@ LIVE_WINDOW_SEGMENTS = int(os.environ.get("LIVE_WINDOW_SEGMENTS", "4"))
 MATCHES_TTL = 300       # 5 min
 SERVERS_TTL = 600       # 10 min
 STREAM_TTL = 1800       # 30 min
+SCORES_TTL = 30         # 30 s (scores en vivo se refrescan seguido)
 
-# Cachés en memoria, todas separadas por deporte cuando aplica.
-# _match_cache:     {"football": {"data": [...], "ts": 123}, "basketball": {...}}
-# _servers_cache:   {"football::https://...": {"data": [...], "ts": 123}}
-# _stream_cache:    {"https://...m3u8": {"url": "...", "ts": 123}}
+# Rutas de ESPN por deporte (para /api/scores)
+ESPN_LIVE_PATHS = {
+    "football": "soccer/all",
+    "basketball": "basketball/nba",
+}
+
+# Caches en memoria, todas separadas por deporte cuando aplica.
 _match_cache: Dict[str, Dict] = {}
 _servers_cache: Dict[str, Dict] = {}
 _stream_cache: Dict[str, Dict] = {}
+_scores_cache: Dict[str, Dict] = {}
 
 
 # ============================================================
-# Filtro y ordenamiento de partidos (idéntico a producción)
+# Filtro y ordenamiento de partidos
 # ============================================================
 def _parse_match_minutes(
     time_str: Optional[str], now: Optional[datetime] = None
@@ -142,7 +148,7 @@ def _filter_and_sort_matches(matches: List[Dict]) -> List[Dict]:
 
 
 # ============================================================
-# Proxy HLS (idéntico a producción)
+# Proxy HLS
 # ============================================================
 def _headers_for(url: str) -> Dict[str, str]:
     host = f"{urlparse(url).scheme}://{urlparse(url).netloc}"
@@ -246,7 +252,7 @@ async def _fetch_with_retries(
                 if resp.status_code in (403, 404):
                     raise HTTPException(
                         resp.status_code,
-                        f"Servidor de origen devolvió {resp.status_code}",
+                        f"Servidor de origen devolvio {resp.status_code}",
                     )
                 last_err = f"HTTP {resp.status_code}"
         except HTTPException:
@@ -255,7 +261,173 @@ async def _fetch_with_retries(
             last_err = str(e)
         if i < attempts - 1:
             await asyncio.sleep(0.3 * (i + 1))
-    raise HTTPException(502, f"Upstream falló tras {attempts} intentos: {last_err}")
+    raise HTTPException(502, f"Upstream fallo tras {attempts} intentos: {last_err}")
+
+
+# ============================================================
+# Marcadores en vivo desde ESPN
+# ============================================================
+async def _fetch_espn_live_score(home: str, away: str, sport: str) -> Optional[Dict]:
+    """
+    Consulta la API publica de ESPN y devuelve el marcador de un partido.
+
+    Acepta cualquier estado del partido (pre / in / post).
+    Si no lo encuentra, devuelve None.
+
+    Respuesta (si lo encuentra):
+        {
+          "available": True,
+          "state": "in" | "pre" | "post",
+          "score": "2 - 1",
+          "home_score": "2",
+          "away_score": "1",
+          "clock": "67'",
+          "period": 2,
+          "events": [ {team, player, minute, icon}, ... ],
+        }
+    """
+    espn_path = ESPN_LIVE_PATHS.get(sport)
+    if not espn_path:
+        return None
+
+    home_l = (home or "").strip().lower()
+    away_l = (away or "").strip().lower()
+    if not home_l or not away_l:
+        return None
+
+    try:
+        async with httpx.AsyncClient(timeout=8.0, headers={"User-Agent": UA}) as client:
+            # 1) Buscar el evento por nombre de equipos
+            r = await client.get(
+                "https://site.web.api.espn.com/apis/search/v2",
+                params={"query": f"{home} {away}", "limit": 5, "type": "event"},
+            )
+            if r.status_code != 200:
+                return None
+
+            data = r.json()
+            event_id = None
+            for result in data.get("results", []):
+                for item in result.get("contents", []):
+                    name = (item.get("name") or "").lower()
+                    if home_l in name and away_l in name:
+                        event_id = item.get("id")
+                        break
+                if event_id:
+                    break
+
+            if not event_id:
+                return None
+
+            # 2) Obtener el summary del evento
+            r2 = await client.get(
+                f"https://site.api.espn.com/apis/site/v2/sports/{espn_path}/summary",
+                params={"event": event_id},
+            )
+            if r2.status_code != 200:
+                return None
+
+            summary = r2.json()
+            comps = summary.get("header", {}).get("competitions", [])
+            if not comps:
+                return None
+
+            comp = comps[0]
+            status = comp.get("status", {}) or {}
+            state = ((status.get("type", {}) or {}).get("state") or "").lower()
+
+            competitors = comp.get("competitors", [])
+            if len(competitors) < 2:
+                return None
+
+            home_score = "0"
+            away_score = "0"
+            home_team_id = None
+            away_team_id = None
+
+            for c in competitors:
+                ha = c.get("homeAway")
+                score = c.get("score", "0")
+                team = c.get("team", {}) or {}
+                if ha == "home":
+                    home_score = score
+                    home_team_id = team.get("id")
+                elif ha == "away":
+                    away_score = score
+                    away_team_id = team.get("id")
+
+            # Clock y periodo (solo si esta en vivo)
+            clock = ""
+            period = ""
+            if state == "in":
+                clock = (
+                    status.get("displayClock")
+                    or (status.get("clock", {}) or {}).get("displayValue", "")
+                    or ""
+                )
+                period = status.get("period", "") or ""
+
+            # Eventos (solo si ya empezo)
+            events: List[Dict] = []
+            if state in ("in", "post"):
+                for ev in summary.get("keyEvents") or []:
+                    et = ((ev.get("type", {}) or {}).get("text") or "").lower()
+                    if not any(k in et for k in (
+                        "goal", "penalty", "card", "basket", "three",
+                        "touchdown", "home run", "strikeout", "knockdown",
+                    )):
+                        continue
+
+                    tid = (ev.get("team", {}) or {}).get("id")
+                    is_home = (tid == home_team_id) or (tid is None and False)
+
+                    clock_ev = ((ev.get("clock", {}) or {}).get("displayValue") or "")
+                    players = ev.get("participants", []) or []
+                    pname = ""
+                    if players:
+                        athlete = (players[0].get("athlete", {}) or {})
+                        pname = athlete.get("displayName", "") or ""
+
+                    icon = "goal"
+                    if "penalty" in et:
+                        icon = "penalty_goal"
+                    elif "red card" in et:
+                        icon = "red_card"
+                    elif "yellow card" in et:
+                        icon = "yellow_card"
+                    elif "three" in et:
+                        icon = "three_pointer"
+                    elif "basket" in et:
+                        icon = "basket"
+                    elif "touchdown" in et:
+                        icon = "touchdown"
+                    elif "home run" in et:
+                        icon = "home_run"
+                    elif "strikeout" in et:
+                        icon = "strikeout"
+                    elif "knockdown" in et:
+                        icon = "knockdown"
+
+                    events.append({
+                        "team": "home" if is_home else "away",
+                        "player": pname,
+                        "minute": clock_ev.replace("'", ""),
+                        "icon": icon,
+                    })
+
+            return {
+                "available": True,
+                "state": state or "unknown",
+                "score": f"{home_score} - {away_score}",
+                "home_score": home_score,
+                "away_score": away_score,
+                "clock": clock,
+                "period": period,
+                "events": events,
+            }
+
+    except Exception:
+        return None
 
 
 # ============================================================
@@ -265,14 +437,6 @@ async def _fetch_with_retries(
 async def api_sports():
     """
     Lista de perfiles de deporte disponibles.
-    El frontend usa esta lista para construir el selector de perfiles.
-
-    Respuesta:
-        [
-          {"key": "football",   "display_name": "Fútbol",     "icon": "football",   "accent": "#b7f35a"},
-          {"key": "basketball", "display_name": "Basketball", "icon": "basketball", "accent": "#f4a261"},
-          ...
-        ]
     """
     return list_sports()
 
@@ -285,11 +449,6 @@ async def api_matches(
 ):
     """
     Agenda filtrada de un deporte.
-
-    Parámetros:
-      - sport: clave de deporte. Default "football" (compat con producción).
-      - all=1: devuelve todos los partidos sin filtrar (debug).
-      - force=1: ignora la caché y vuelve a scrapear.
     """
     sport = (sport or "football").strip().lower()
     if not is_valid_sport(sport):
@@ -314,13 +473,6 @@ async def api_matches(
 async def api_channels(sport: str = Query("football")):
     """
     Canales M3U en vivo (iptv-org + Free-TV + manuales).
-
-    No depende de Playwright: descarga las listas con httpx desde GitHub,
-    así que funciona en Render aunque Chromium no esté instalado o las
-    IPs del datacenter estén bloqueadas por los sitios de streaming.
-
-    Parámetros:
-      - sport: clave de deporte. Default "football".
     """
     sport = (sport or "football").strip().lower()
     if not is_valid_sport(sport):
@@ -332,6 +484,76 @@ async def api_channels(sport: str = Query("football")):
         raise HTTPException(500, f"Error cargando canales M3U: {e}")
 
 
+@app.get("/api/news")
+async def api_news(sport: str = Query("football")):
+    """
+    Noticias de futbol o basketball desde feeds RSS publicos.
+    """
+    sport = (sport or "football").strip().lower()
+    if sport not in ("football", "basketball"):
+        raise HTTPException(400, f"Deporte no soportado para noticias: {sport}")
+    try:
+        news = await get_news_for_sport(sport)
+        return news
+    except Exception as e:
+        raise HTTPException(500, f"Error cargando noticias: {e}")
+
+
+@app.get("/api/scores")
+async def api_scores(
+    home: str = Query(...),
+    away: str = Query(...),
+    sport: str = Query("football"),
+):
+    """
+    Marcador en vivo de un partido consultado a la API publica de ESPN.
+
+    El frontend lo llama cada 30s mientras un partido esta abierto en el
+    player para actualizar el overlay de scores.
+
+    Parametros:
+      - home: nombre del equipo local ("Real Madrid").
+      - away: nombre del equipo visitante ("Barcelona").
+      - sport: "football" (default) o "basketball".
+
+    Respuesta:
+        {
+          "available": true,
+          "state": "in",
+          "score": "2 - 1",
+          "home_score": "2",
+          "away_score": "1",
+          "clock": "67'",
+          "period": 2,
+          "events": [...]
+        }
+
+    Si no encuentra el partido:
+        {"available": false, "reason": "not_found"}
+    """
+    sport = (sport or "football").strip().lower()
+    if sport not in ("football", "basketball"):
+        raise HTTPException(400, f"Deporte no soportado para scores: {sport}")
+
+    home = (home or "").strip()
+    away = (away or "").strip()
+    if not home or not away:
+        raise HTTPException(400, "Se requieren 'home' y 'away'")
+
+    cache_key = f"{sport}::{home.lower()}::{away.lower()}"
+    now = time.time()
+    cached = _scores_cache.get(cache_key)
+    if cached and (now - cached["ts"] < SCORES_TTL):
+        return cached["data"]
+
+    data = await _fetch_espn_live_score(home, away, sport)
+    if data is None:
+        data = {"available": False, "reason": "not_found"}
+
+    _scores_cache[cache_key] = {"data": data, "ts": now}
+    return data
+
+
 @app.get("/api/servers")
 async def api_servers(
     match_url: str = Query(...),
@@ -341,11 +563,6 @@ async def api_servers(
 ):
     """
     Lista de servidores resueltos para un partido.
-
-    Parámetros:
-      - match_url: URL del embed del partido.
-      - sport: clave de deporte (para buscar en la caché correcta).
-      - force=1: ignora la caché de servidores.
     """
     sport = (sport or "football").strip().lower()
     if not is_valid_sport(sport):
@@ -367,7 +584,6 @@ async def api_servers(
 
     target = next((m for m in matches if m.get("match_url") == match_url), None)
     if not target:
-        # Fallback: usar match_url como único embed.
         target = {"servers": [{"name": "Servidor principal", "embed_url": match_url}]}
 
     servers_in = target.get("servers") or []
@@ -457,8 +673,21 @@ async def api_proxy(url: str = Query(...)):
 
 
 @app.get("/api/thumbnail")
-async def api_thumbnail(title: str = Query(...), league: str = Query("")):
-    return await resolve_thumbnail(title, league)
+async def api_thumbnail(
+    title: str = Query(...),
+    league: str = Query(""),
+    sport: str = Query("football"),
+):
+    """
+    Miniatura de un partido.
+
+    Parametros:
+      - title:  titulo del partido (obligatorio).
+      - league: liga inferida (opcional).
+      - sport:  "football" (default) o "basketball". Determina el fallback
+                cuando Wikipedia no encuentra al equipo.
+    """
+    return await resolve_thumbnail(title, league, sport)
 
 
 @app.get("/")
@@ -474,8 +703,8 @@ async def root():
 @app.head("/")
 async def root_head():
     """
-    CAMBIO: Render hace un HEAD / como health check y FastAPI solo
-    tenía GET /, así que devolvía 405 Method Not Allowed en los logs.
+    Render hace un HEAD / como health check y FastAPI solo
+    tenia GET /, asi que devolvia 405 Method Not Allowed en los logs.
     Este handler responde 200 sin body al HEAD.
     """
     return Response(status_code=200)

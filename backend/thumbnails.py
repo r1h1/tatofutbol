@@ -1,5 +1,5 @@
 # backend/thumbnails.py
-"""Thumbnails desde Wikipedia (es → en → limpio) con fallback al Camp Nou."""
+"""Thumbnails desde Wikipedia (es → en → limpio) con fallback por deporte."""
 import asyncio
 import re
 import time
@@ -28,8 +28,11 @@ _team_cache: Dict[str, Optional[str]] = {}
 TEAM_TTL = 6 * 3600
 _team_ts: Dict[str, float] = {}
 
-# ── IMAGEN POR DEFECTO (SPOTIFY CAMP NOU) ──
-FALLBACK_URL = "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/89/Camp_Nou_%28Joan_Gamper_2019%29.jpg/1280px-Camp_Nou_%28Joan_Gamper_2019%29.jpg"
+# ── IMÁGENES POR DEFECTO ──
+# Fútbol: Messi (fallback histórico del proyecto).
+FALLBACK_URL = "https://imgs.search.brave.com/LFF-pduGJhekCzuIde8ZUTjiTbBuTAbiKDvRUzho634/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93YWxs/cGFwZXJhY2Nlc3Mu/Y29tL2Z1bGwvODY0/MjIzNy5qcGc"
+# Basketball: Michael Jordan (1987), foto de Sports Illustrated.
+FALLBACK_BASKETBALL = "https://www.si.com/.image/t_share/MTY4MTg2MDIzMDUzMjM5NTY5/1987-michael-jordan-001283802jpg.jpg"
 
 _CLUB_SUFFIXES = re.compile(
     r"\s+(FC|CF|SC|AC|CD|UD|RC|RCD|SAD|SD|CA|AFC|BK|IF|FF|SS|US|AS|SSC|CFC|"
@@ -38,9 +41,6 @@ _CLUB_SUFFIXES = re.compile(
     re.IGNORECASE,
 )
 
-# Palabras clave que aparecen en las CATEGORÍAS de Wikipedia cuando la
-# página es realmente sobre un equipo deportivo (no un animal, ciudad, etc.).
-# Sin este filtro, "Venados" devuelve la foto de un ciervo en vez del escudo.
 _TEAM_CATEGORY_KEYWORDS = (
     "fútbol", "futbol", "football", "soccer", "balompié", "balompie",
     "clubes de", "equipos de", "club de", "equipo de",
@@ -95,8 +95,6 @@ async def _wikipedia_image(team_name: str, lang: str) -> Optional[str]:
         if _team_cache[cache_key] is not None and (now - cached_at) < TEAM_TTL:
             return _team_cache[cache_key]
 
-    # Variantes a probar: nombre limpio, sufijos de desambiguación y original.
-    # Ej: "Venados" → "Venados" (ciervo, rechazado) → "Venados FC" (club real).
     base = _clean_team_name(team_name) or team_name
     candidates = [
         base,
@@ -104,7 +102,7 @@ async def _wikipedia_image(team_name: str, lang: str) -> Optional[str]:
         f"{base} (fútbol)",
         team_name,
     ]
-    candidates = list(dict.fromkeys(candidates))  # dedupe preservando orden
+    candidates = list(dict.fromkeys(candidates))
 
     client = _get_client()
 
@@ -131,8 +129,6 @@ async def _wikipedia_image(team_name: str, lang: str) -> Optional[str]:
                 thumb = page.get("thumbnail", {}).get("source")
                 if not thumb:
                     continue
-                # Rechazar páginas que NO son de equipos deportivos
-                # (ej: "Venados" = ciervo, "Tigres" = felino, "Águilas" = ave).
                 if not _is_sports_team_page(page):
                     continue
                 _team_cache[cache_key] = thumb
@@ -145,8 +141,10 @@ async def _wikipedia_image(team_name: str, lang: str) -> Optional[str]:
     _team_ts[cache_key] = now
     return None
 
-async def resolve_thumbnail(title: str, league: str = "") -> Dict:
-    key = f"{title}||{league}"
+async def resolve_thumbnail(title: str, league: str = "", sport: str = "football") -> Dict:
+    """Resuelve la miniatura de un partido. Fallback según deporte."""
+    sport = (sport or "football").strip().lower()
+    key = f"{title}||{league}||{sport}"
     now = time.time()
 
     if key in _thumb_cache and now - _thumb_cache[key]["ts"] < THUMB_TTL:
@@ -173,8 +171,12 @@ async def resolve_thumbnail(title: str, league: str = "") -> Dict:
             break
 
     if not img_url:
-        img_url = FALLBACK_URL
-        print(f"[THUMB] Usando Camp Nou para '{title}'")
+        if sport == "basketball":
+            img_url = FALLBACK_BASKETBALL
+            print(f"[THUMB] Usando Jordan para '{title}' (basketball)")
+        else:
+            img_url = FALLBACK_URL
+            print(f"[THUMB] Usando Camp Nou para '{title}'")
 
     result = {
         "type": "photo",

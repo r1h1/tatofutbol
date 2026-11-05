@@ -22,15 +22,26 @@ SPORTS: Dict[str, Dict] = {
         "icon": "basketball", 
         "accent": "#f4a261", 
         "use_m3u": True,
-        "available": False,  # <-- Deshabilitado para el frontend
+        "available": True,
         "sources": [
             {"name": "streameast_cool", "base_url": "https://streameast.cool", "agenda_url": "https://streameast.cool/nbastreams4", "source_type": "generic", "min_title_len": 5},
         ],
-    }
+    },
+    "nhl": {
+        "display_name": "NHL",
+        "icon": "hockey",
+        "accent": "#60a5fa",
+        "use_m3u": True,
+        "available": True,
+        # No tiene fuentes propias: sus partidos se extraen de las
+        # fuentes de fútbol y se clasifican por título (ver scraper.py).
+        "sources": [],
+    },
 }
 
 CROSS_KEYWORDS = {
     "basketball": ["nhl", "mlb", "nfl", "soccer", "tennis", "motogp", "formula 1", "f1", "ufc", "boxing", "cricket", "darts", "rugby", "golf", "football", "nascar", "indycar"],
+    "nhl": ["nba", "wnba", "soccer", "mlb", "nfl", "tennis", "motogp", "formula 1", "f1", "ufc", "boxing", "football", "basketball"],
 }
 
 def list_sports() -> List[Dict]:

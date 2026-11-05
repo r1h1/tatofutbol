@@ -1,1102 +1,3311 @@
 <!doctype html>
 <html lang="es">
+
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<meta name="theme-color" content="#000000"/>
-<title>TatoTV</title>
-<link rel="icon" type="image/png" href="https://assets.football-logos.cc/logos/spain/512x512/barcelona.9ee7ed85.png"/>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js" defer></script>
-<style>
-:root {
-  --bg: #000000;
-  --glass-bg: rgba(20, 20, 20, 0.6);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --text: #ffffff;
-  --text-dim: #a1a1aa;
-  --brand: #ffffff;
-  --accent: #e50914;
-  --radius-card: 16px;
-  --radius-pill: 999px;
-  --font: 'Inter', system-ui, -apple-system, sans-serif;
-  --header-h: 64px;
-  --pad: clamp(16px, 4vw, 60px);
-}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#000000" />
+  <title>TatoTV</title>
+  <link rel="icon" type="image/png"
+    href="https://assets.football-logos.cc/logos/spain/512x512/barcelona.9ee7ed85.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js" defer></script>
+  <style>
+    :root {
+      --bg: #000000;
+      --glass-bg: rgba(20, 20, 20, 0.6);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --text: #ffffff;
+      --text-dim: #a1a1aa;
+      --brand: #ffffff;
+      --accent: #e50914;
+      --radius-card: 20px;
+      --radius-pill: 999px;
+      --font: "Inter", system-ui, -apple-system, sans-serif;
+      --header-h: 64px;
+      --pad: clamp(16px, 4vw, 60px);
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  background-color: var(--bg);
-  color: var(--text);
-  font-family: var(--font);
-  font-size: 16px;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-}
+      --md-elev-1:
+        0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
+      --md-elev-2:
+        0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 6px 2px rgba(0, 0, 0, 0.15);
+      --md-elev-3:
+        0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 8px 3px rgba(0, 0, 0, 0.15);
+      --md-elev-4:
+        0 2px 3px rgba(0, 0, 0, 0.3), 0 6px 10px 4px rgba(0, 0, 0, 0.15);
+      --md-elev-5:
+        0 4px 4px rgba(0, 0, 0, 0.3), 0 8px 12px 6px rgba(0, 0, 0, 0.15);
+      --md-transition: 0.25s cubic-bezier(0.2, 0, 0, 1);
+    }
 
-:focus-visible {
-  outline: 3px solid var(--brand);
-  outline-offset: 4px;
-  border-radius: 8px;
-  transition: none;
-}
+    html[data-theme="emerald"] {
+      --accent: #10b981;
+    }
 
-/* ── FONDO AMBIENTAL PRO ── */
-#dynamic-bg {
-  position: fixed; inset: 0; z-index: -2;
-  background-size: cover; background-position: center 20%;
-  filter: blur(80px) opacity(0.35) saturate(1.8);
-  transition: background-image 1.2s ease, opacity 1.2s ease;
-  background-color: #000;
-}
-#dynamic-bg-overlay {
-  position: fixed; inset: 0; z-index: -1;
-  background: radial-gradient(circle at 50% 0%, transparent 0%, #000 70%),
-              linear-gradient(to bottom, transparent 0%, #000 85%);
-  pointer-events: none;
-}
+    html[data-theme="amber"] {
+      --accent: #f59e0b;
+    }
 
-/* ── TOP NAV (Sólido, sin Glassmorphism) ── */
-.top-nav {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
-  display: flex; align-items: center; justify-content: space-between;
-  height: var(--header-h); padding: 0 var(--pad);
-  background: #000; border-bottom: 1px solid #111;
-  transition: all 0.4s ease;
-}
-.nav-left { display: flex; align-items: center; gap: 32px; }
-.brand {
-  display: flex; align-items: center; gap: 12px;
-  font-weight: 900; font-size: 22px; letter-spacing: -0.5px; color: #fff; text-decoration: none;
-  flex-shrink: 0;
-}
-.brand-logo {
-  width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-}
+    html[data-theme="rose"] {
+      --accent: #f43f5e;
+    }
 
-.sport-tabs { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 4px 0; }
-.sport-tabs::-webkit-scrollbar { display: none; }
-.sport-tab {
-  padding: 8px 20px; border-radius: var(--radius-pill);
-  font-size: 14px; font-weight: 600; color: var(--text-dim);
-  cursor: pointer; transition: 0.3s cubic-bezier(0.2,0,0,1); border: none; background: transparent;
-  display: flex; align-items: center; gap: 8px; white-space: nowrap;
-}
-.sport-tab:hover:not(.disabled) { color: #fff; background: rgba(255,255,255,0.1); }
-.sport-tab.active {
-  background: #ffffff; color: #000000; font-weight: 800;
-}
-.sport-tab.disabled { opacity: 0.5; cursor: not-allowed; }
-.sport-tab.disabled::after {
-  content: "PRÓXIMAMENTE"; font-size: 9px; background: rgba(255,255,255,0.2);
-  padding: 2px 6px; border-radius: 4px; margin-left: 6px; letter-spacing: 0.5px;
-}
-.sport-tab svg { width: 16px; height: 16px; }
+    html[data-theme="violet"] {
+      --accent: #8b5cf6;
+    }
 
-.nav-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-.icon-btn {
-  width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.1);
-  display: flex; align-items: center; justify-content: center; color: #fff;
-  cursor: pointer; transition: 0.3s; border: 1px solid transparent;
-}
-.icon-btn:hover { background: rgba(255,255,255,0.2); }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-/* ── BARRA DE BÚSQUEDA FLOTANTE (Glassmorphism) ── */
-.hero-search-container {
-  position: fixed; top: calc(var(--header-h) + 16px); left: 50%; transform: translateX(-50%);
-  width: calc(100% - 32px); max-width: 600px; z-index: 999;
-  display: flex; align-items: center;
-  background: var(--glass-bg); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
-  border: 1px solid var(--glass-border); border-radius: var(--radius-pill);
-  padding: 0 20px; height: 48px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-  transition: all 0.3s ease;
-}
-.hero-search-container:focus-within {
-  background: rgba(40,40,40,0.8); border-color: rgba(255,255,255,0.3);
-}
-.hero-search-container svg { color: #888; margin-right: 10px; flex-shrink: 0; width: 18px; height: 18px; }
-.hero-search-container input {
-  background: none; border: none; outline: none; color: #fff;
-  width: 100%; font-family: inherit; font-size: 15px;
-}
-.hero-search-container input::placeholder { color: #888; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 16px;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
 
-/* ── MENÚ HAMBURGUESA MÓVIL (SIDE DRAWER) ── */
-.menu-btn { display: none; }
-.menu-backdrop {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px);
-  z-index: 1500; opacity: 0; pointer-events: none; transition: 0.3s;
-}
-.menu-backdrop.open { opacity: 1; pointer-events: auto; }
-.side-menu {
-  position: fixed; top: 0; left: 0; bottom: 0; width: 280px;
-  background: #111; border-right: 1px solid var(--glass-border);
-  z-index: 1600; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.2,0,0,1);
-  padding: 24px; display: flex; flex-direction: column; gap: 32px;
-}
-.side-menu.open { transform: translateX(0); }
-.side-menu-header { display: flex; align-items: center; justify-content: space-between; }
-.side-menu-tabs { display: flex; flex-direction: column; gap: 8px; }
-.side-menu-tabs .sport-tab { width: 100%; justify-content: flex-start; padding: 12px 16px; font-size: 15px; }
-.side-menu-btn {
-  padding: 12px 16px; border-radius: var(--radius-pill); background: rgba(255,255,255,0.05);
-  border: 1px solid var(--glass-border); color: #fff; font-weight: 600; font-size: 14px;
-  display: flex; align-items: center; gap: 10px; cursor: pointer; text-align: left;
-}
+    ::selection {
+      background: rgba(229, 9, 20, 0.35);
+      color: #fff;
+    }
 
-/* ── HERO CINEMATOGRÁFICO (75vh) ── */
-.hero {
-  position: relative; width: 100%; height: 75vh; min-height: 500px;
-  display: flex; flex-direction: column; justify-content: flex-end;
-  padding: 0 var(--pad) 40px;
-  margin-bottom: 20px;
-}
-.hero-bg {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  object-fit: cover; z-index: 1; opacity: 0; transition: opacity 1s ease;
-  mask-image: linear-gradient(to top, transparent 0%, #000 70%);
-  -webkit-mask-image: linear-gradient(to top, transparent 0%, #000 70%);
-}
-.hero-bg.loaded { opacity: 0.6; }
-.hero-content {
-  position: relative; z-index: 2; max-width: 800px; display: none; flex-direction: column; gap: 12px;
-  animation: slideUp 0.8s cubic-bezier(0.2,0,0,1) forwards;
-}
-.hero-logo {
-  font-size: 12px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 1.5px;
-  display: flex; align-items: center; gap: 6px;
-}
-.hero-logo .dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 10px var(--accent); }
-.hero-title {
-  font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; line-height: 1.1;
-  letter-spacing: -1px; color: #fff; text-shadow: 0 4px 20px rgba(0,0,0,0.8);
-}
-.hero-desc {
-  font-size: 15px; color: #d4d4d8; max-width: 600px; margin-bottom: 8px; font-weight: 500;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-}
-.hero-actions { display: flex; gap: 12px; }
-.btn-primary {
-  background: #ffffff; color: #000; padding: 12px 28px; border-radius: var(--radius-pill);
-  font-size: 15px; font-weight: 800; display: inline-flex; align-items: center; gap: 8px;
-  cursor: pointer; transition: transform 0.2s, background 0.2s; border: none;
-  box-shadow: 0 8px 24px rgba(255,255,255,0.15);
-}
-.btn-primary:hover { transform: scale(1.05); background: #f4f4f5; }
-.btn-primary svg { width: 18px; height: 18px; fill: #000; }
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
 
-/* ── ROWS Y TARJETAS (Tamaños Compactos) ── */
-.main-content { padding: 0 var(--pad) 100px; position: relative; z-index: 10; margin-top: 20px; }
-.row { margin-bottom: 40px; }
-.row-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-.row-title { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #fff; }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
 
-.row-wrapper { position: relative; }
+    ::-webkit-scrollbar-thumb {
+      background: #2a2a2a;
+      border-radius: 4px;
+    }
 
-.row-scroll {
-  display: flex; gap: 16px; overflow-x: auto; padding: 10px 0 20px;
-  scroll-snap-type: x mandatory; scrollbar-width: none;
-  scroll-behavior: smooth; -webkit-overflow-scrolling: touch;
-}
-.row-scroll::-webkit-scrollbar { display: none; }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3a3a3a;
+    }
 
-/* FLECHAS DE NAVEGACIÓN (PC) */
-.nav-btn {
-  position: absolute; top: 50%; transform: translateY(-50%);
-  width: 40px; height: 40px; border-radius: 50%;
-  background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.2); color: #fff;
-  display: flex; align-items: center; justify-content: center;
-  z-index: 10; cursor: pointer; transition: all 0.2s;
-  opacity: 0; pointer-events: none;
-}
-.row-wrapper:hover .nav-btn { opacity: 1; pointer-events: auto; }
-.nav-btn:hover { background: #fff; color: #000; transform: translateY(-50%) scale(1.1); }
-.nav-btn.prev { left: -20px; }
-.nav-btn.next { right: -20px; }
+    :focus-visible {
+      outline: 3px solid var(--brand);
+      outline-offset: 4px;
+      border-radius: 8px;
+      transition: none;
+    }
 
-.match-card {
-  flex: 0 0 280px; background: #111; border-radius: var(--radius-card);
-  overflow: hidden; cursor: pointer; transition: all 0.4s cubic-bezier(0.2,0,0,1);
-  scroll-snap-align: start; border: 1px solid var(--glass-border); position: relative;
-}
-.match-card:hover, .match-card:focus-visible {
-  transform: translateY(-8px);
-  box-shadow: 0 0 0 2px rgba(255,255,255,0.3), 0 20px 40px rgba(0,0,0,0.9);
-  z-index: 5;
-}
-.match-thumb { position: relative; aspect-ratio: 16/9; background: #222; overflow: hidden; }
-.match-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s; }
-.match-card:hover .match-thumb img { transform: scale(1.08); }
-.match-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 60%); }
-.match-info { padding: 16px; position: relative; z-index: 2; }
-.match-title { font-size: 15px; font-weight: 700; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.match-meta { font-size: 13px; color: var(--text-dim); margin-top: 6px; display: flex; align-items: center; gap: 8px; }
-.badge {
-  padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 800;
-  text-transform: uppercase; letter-spacing: 0.8px; position: absolute; top: 12px; left: 12px; z-index: 3;
-}
-.badge-live { background: var(--accent); color: #fff; box-shadow: 0 0 15px rgba(229,9,20,0.5); }
-.badge-upcoming { background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); color: #fff; }
-.play-hover-btn {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8);
-  width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,0.9);
-  display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s;
-  pointer-events: none; backdrop-filter: blur(10px); z-index: 4; box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-}
-.play-hover-btn svg { width: 22px; height: 22px; fill: #000; margin-left: 4px; }
-.match-card:hover .play-hover-btn { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    .md-ripple-host {
+      position: relative;
+      overflow: hidden;
+    }
 
-/* ── CANALES (ESTILO APPS TV) ── */
-.channel-row { 
-  display: flex; gap: 24px; overflow-x: auto; padding: 10px 0 20px; scrollbar-width: none;
-  scroll-behavior: smooth; -webkit-overflow-scrolling: touch;
-}
-.channel-row::-webkit-scrollbar { display: none; }
-.channel-card { display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer; transition: 0.3s; flex: 0 0 90px; }
-.channel-logo-wrap {
-  width: 80px; height: 80px; border-radius: 22px; background: rgba(255,255,255,0.05);
-  display: flex; align-items: center; justify-content: center; overflow: hidden;
-  border: 1px solid var(--glass-border); transition: all 0.3s; box-shadow: 0 8px 16px rgba(0,0,0,0.4);
-  backdrop-filter: blur(10px);
-}
-.channel-card:hover .channel-logo-wrap, .channel-card:focus-visible .channel-logo-wrap {
-  border-color: rgba(255,255,255,0.5); transform: translateY(-6px) scale(1.05); background: rgba(255,255,255,0.1);
-}
-.channel-logo-wrap img { width: 100%; height: 100%; object-fit: cover; }
-.channel-logo-wrap .fallback { font-size: 28px; font-weight: 900; color: var(--text-dim); }
-.channel-name { font-size: 13px; font-weight: 600; text-align: center; color: var(--text-dim); max-width: 90px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: 0.3s; }
-.channel-card:hover .channel-name { color: #fff; }
+    .md-ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.35);
+      transform: scale(0);
+      animation: md-ripple 0.6s cubic-bezier(0.2, 0, 0, 1);
+      pointer-events: none;
+    }
 
-/* ── ESTADO PRÓXIMAMENTE ── */
-.pending-state {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  height: 40vh; text-align: center; animation: fadeIn 0.5s;
-}
-.pending-state h2 { font-size: 28px; font-weight: 800; margin-bottom: 10px; }
-.pending-state p { color: var(--text-dim); font-size: 15px; max-width: 400px; }
-
-/* ── SKELETONS PREMIUM ── */
-@keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
-@keyframes slideUp { from{opacity:0; transform:translateY(30px)} to{opacity:1; transform:translateY(0)} }
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes fadeIn { from{opacity:0} to{opacity:1} }
-.skl { background: linear-gradient(90deg, #18181b 0%, #27272a 50%, #18181b 100%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: var(--radius-card); }
-.skl-hero { width: 100%; height: 75vh; position: absolute; inset: 0; z-index: 0; border-radius: 0; }
-.skl-card { flex: 0 0 280px; aspect-ratio: 16/9; }
-.skl-circle { width: 80px; height: 80px; border-radius: 22px; flex: 0 0 90px; }
-
-/* ── MODALES (Glassmorphism) ── */
-.modal { position: fixed; inset: 0; z-index: 2000; display: none; align-items: center; justify-content: center; padding: 24px; background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-.modal.open { display: flex; animation: fadeIn 0.4s; }
-.modal-box {
-  width: 100%; max-width: 800px; background: rgba(18, 18, 18, 0.85);
-  border-radius: 24px; overflow: hidden; box-shadow: 0 50px 100px rgba(0,0,0,0.9);
-  border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
-  display: flex; flex-direction: column;
-}
-.modal-header { padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); }
-.modal-body { padding: 24px; max-height: 70vh; overflow-y: auto; }
-.server-tabs { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
-.server-tab {
-  padding: 8px 16px; border-radius: var(--radius-pill); background: rgba(255,255,255,0.05);
-  border: 1px solid var(--glass-border); color: #fff; cursor: pointer; font-weight: 600; transition: 0.3s; font-size: 13px; white-space: nowrap;
-}
-.server-tab.active { background: #fff; color: #000; box-shadow: 0 4px 15px rgba(255,255,255,0.2); border-color: #fff; }
-.server-btn {
-  display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 14px 20px;
-  border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border);
-  margin-bottom: 8px; cursor: pointer; transition: 0.3s; color: #fff; text-align: left; font-size: 15px; font-weight: 600;
-}
-.server-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); transform: translateX(5px); }
-.player-video { width: 100%; aspect-ratio: 16/9; background: #000; display: none; }
-
-/* ── BÚSQUEDA OVERLAY ── */
-.search-overlay { 
-  position: fixed; inset: 0; z-index: 3000; 
-  background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.95)), url('https://thumb.wikimedia.org/wikipedia/commons/thumb/8/89/Camp_Nou_%28Joan_Gamper_2019%29.jpg/800px-Camp_Nou_%28Joan_Gamper_2019%29.jpg') center/cover no-repeat;
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
-}
-.search-overlay.active { display: flex; }
-.search-overlay-box { 
-  text-align: center; width: 100%; max-width: 400px; 
-  background: var(--glass-bg); padding: 30px 24px; border-radius: 20px; border: 1px solid var(--glass-border);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-}
-.progress-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-top: 20px; overflow: hidden; }
-.progress-fill { height: 100%; background: var(--brand); width: 0%; transition: width 0.3s; border-radius: 3px; }
-
-/* ============================================================
-   RESPONSIVE: MÓVIL Y TABLET
-   ============================================================ */
-@media (max-width: 1024px) {
-  .match-card { flex: 0 0 260px; }
-  .skl-card { flex: 0 0 260px; }
-}
-
-@media (max-width: 768px) {
-  :root { --header-h: 56px; --pad: 16px; }
-  
-  .top-nav { padding: 0 16px; }
-  .brand { font-size: 20px; }
-  .brand-logo { width: 28px; height: 28px; }
-  
-  .nav-left .sport-tabs { display: none; }
-  .menu-btn { display: flex; }
-  
-  .hero-search-container { top: calc(var(--header-h) + 12px); height: 44px; padding: 0 16px; }
-  .hero-search-container input { font-size: 14px; }
-  
-  .nav-right { margin-left: auto; }
-  .icon-btn#disclaimer-btn { display: none; }
-  
-  .hero { height: 65vh; min-height: 450px; padding-bottom: 30px; text-align: center; align-items: center; }
-  .hero-content { align-items: center; margin-top: 20px; }
-  .hero-title { font-size: 1.8rem; }
-  .hero-desc { font-size: 14px; max-width: 90%; }
-  .hero-actions { justify-content: center; width: 100%; }
-  .btn-primary { width: 100%; justify-content: center; padding: 12px; font-size: 14px; }
-  
-  .main-content { margin-top: 10px; padding-bottom: 60px; }
-  .nav-btn { display: none !important; }
-  
-  .match-card { flex: 0 0 240px; }
-  .match-title { font-size: 14px; }
-  .match-info { padding: 12px; }
-  .row-title { font-size: 18px; }
-  
-  .channel-card { flex: 0 0 80px; gap: 8px; }
-  .channel-logo-wrap { width: 70px; height: 70px; border-radius: 20px; }
-  .channel-name { font-size: 12px; max-width: 80px; }
-  
-  .skl-card { flex: 0 0 240px; }
-  .skl-circle { width: 70px; height: 70px; border-radius: 20px; flex: 0 0 80px; }
-  
-  .modal { padding: 0; }
-  .modal-box { height: 100dvh; max-height: 100dvh; border-radius: 0; border: none; }
-  .modal-header { padding: 16px 20px; border-radius: 0; }
-  .modal-body { padding: 20px; flex: 1; max-height: none; }
-  .server-tab { padding: 8px 14px; font-size: 13px; }
-  .server-btn { padding: 14px; font-size: 14px; }
-}
-
-@media (max-width: 480px) {
-  .hero-title { font-size: 1.5rem; }
-  .match-card { flex: 0 0 220px; }
-  .skl-card { flex: 0 0 220px; }
-}
-
-/* ============================================================
-   OPTIMIZACIÓN: SMART TV Y PANTALLAS GRANDES (4K)
-   ============================================================ */
-@media (min-width: 1600px) {
-  :root { --pad: 60px; }
-  .match-card { flex: 0 0 340px; }
-  .skl-card { flex: 0 0 340px; }
-  .match-title { font-size: 18px; }
-  .match-meta { font-size: 15px; }
-  .channel-card { flex: 0 0 120px; }
-  .channel-logo-wrap { width: 100px; height: 100px; border-radius: 28px; }
-  .skl-circle { width: 100px; height: 100px; border-radius: 28px; flex: 0 0 120px; }
-  .channel-name { font-size: 15px; max-width: 120px; }
-  .row-title { font-size: 28px; }
-}
-</style>
-</head>
-<body>
-
-<!-- SVG SPRITE (Iconos) -->
-<svg class="hidden" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
-  <defs>
-    <symbol id="sport-football" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7l-2.2 1.6.9 2.4h2.6l.9-2.4z"/><path d="M7 9.7l1.7 1.5-.5 2.4-2.2.5"/><path d="M17 9.7l-1.7 1.5.5 2.4 2.2.5"/><path d="M9.8 17l1.2-1.5h2l1.2 1.5"/></symbol>
-    <symbol id="sport-basketball" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18"/><path d="M3 12h18"/><path d="M5.5 5.5c3.5 3.5 3.5 9.5 0 13"/><path d="M18.5 5.5c-3.5 3.5-3.5 9.5 0 13"/></symbol>
-    <symbol id="ico-play" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></symbol>
-    <symbol id="ico-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
-    <symbol id="ico-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
-    <symbol id="ico-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
-    <symbol id="ico-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></symbol>
-    <symbol id="ico-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></symbol>
-    <symbol id="ico-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></symbol>
-  </defs>
-</svg>
-
-<div id="dynamic-bg"></div>
-<div id="dynamic-bg-overlay"></div>
-
-<!-- MENÚ HAMBURGUESA (SÓLO MÓVIL) -->
-<div class="menu-backdrop" id="menu-backdrop"></div>
-<aside class="side-menu" id="side-menu">
-  <div class="side-menu-header">
-    <span class="brand">
-      <img src="https://assets.football-logos.cc/logos/spain/512x512/barcelona.9ee7ed85.png" class="brand-logo" style="width:28px;height:28px" alt="Logo"/>
-      TatoTV
-    </span>
-    <button class="icon-btn" id="close-menu" style="width:36px;height:36px;background:rgba(255,255,255,0.05)"><svg width="20" height="20"><use href="#ico-close"/></svg></button>
-  </div>
-  <div class="side-menu-tabs" id="side-menu-tabs"></div>
-  <button class="side-menu-btn" id="side-disclaimer-btn">
-    <svg width="20" height="20"><use href="#ico-shield"/></svg> Aviso Legal
-  </button>
-</aside>
-
-<!-- TOP NAV SÓLIDO -->
-<header class="top-nav" id="top-nav">
-  <div class="nav-left">
-    <button class="icon-btn menu-btn" id="menu-btn"><svg width="24" height="24"><use href="#ico-menu"/></svg></button>
-    <a href="#" class="brand">
-      <img src="https://assets.football-logos.cc/logos/spain/512x512/barcelona.9ee7ed85.png" class="brand-logo" alt="Logo"/>
-      TatoTV
-    </a>
-    <div class="sport-tabs" id="sport-tabs"></div>
-  </div>
-  <div class="nav-right">
-    <button class="icon-btn" id="disclaimer-btn"><svg width="20" height="20"><use href="#ico-shield"/></svg></button>
-  </div>
-</header>
-
-<!-- BARRA DE BÚSQUEDA FLOTANTE (Glassmorphism) -->
-<div class="hero-search-container">
-  <svg><use href="#ico-search"/></svg>
-  <input type="search" id="search-input" placeholder="Buscar equipos, ligas o partidos..." autocomplete="off"/>
-</div>
-
-<!-- HERO (75% altura) -->
-<section class="hero" id="hero">
-  <div class="skl skl-hero" id="hero-skeleton"></div>
-  <img class="hero-bg" id="hero-bg" alt=""/>
-  <div class="hero-content" id="hero-content">
-    <div class="hero-logo" id="hero-logo"><span class="dot"></span> EN VIVO</div>
-    <div class="hero-title" id="hero-title">Cargando...</div>
-    <div class="hero-desc" id="hero-desc">Cargando información...</div>
-    <div class="hero-actions">
-      <button class="btn-primary" id="hero-play-btn">
-        <svg><use href="#ico-play"/></svg> Reproducir
-      </button>
-    </div>
-  </div>
-</section>
-
-<!-- MAIN CONTENT -->
-<main class="main-content">
-  <div id="content-wrapper">
-    
-    <div class="row" id="live-row" style="display:none">
-      <div class="row-header"><h2 class="row-title">En vivo ahora</h2></div>
-      <div class="row-wrapper">
-        <button class="nav-btn prev"><svg width="20" height="20"><use href="#ico-left"/></svg></button>
-        <div class="row-scroll" id="live-grid"></div>
-        <button class="nav-btn next"><svg width="20" height="20"><use href="#ico-right"/></svg></button>
-      </div>
-    </div>
-
-    <div class="row" id="channels-row" style="display:none">
-      <div class="row-header"><h2 class="row-title">Aplicaciones / Canales</h2></div>
-      <div class="row-wrapper">
-        <button class="nav-btn prev"><svg width="20" height="20"><use href="#ico-left"/></svg></button>
-        <div class="channel-row" id="channels-grid"></div>
-        <button class="nav-btn next"><svg width="20" height="20"><use href="#ico-right"/></svg></button>
-      </div>
-    </div>
-
-    <div class="row" id="upcoming-row" style="display:none">
-      <div class="row-header"><h2 class="row-title">Próximos partidos</h2></div>
-      <div class="row-wrapper">
-        <button class="nav-btn prev"><svg width="20" height="20"><use href="#ico-left"/></svg></button>
-        <div class="row-scroll" id="upcoming-grid"></div>
-        <button class="nav-btn next"><svg width="20" height="20"><use href="#ico-right"/></svg></button>
-      </div>
-    </div>
-
-    <div class="row" id="recent-row" style="display:none">
-      <div class="row-header"><h2 class="row-title">Resultados recientes</h2></div>
-      <div class="row-wrapper">
-        <button class="nav-btn prev"><svg width="20" height="20"><use href="#ico-left"/></svg></button>
-        <div class="row-scroll" id="recent-grid"></div>
-        <button class="nav-btn next"><svg width="20" height="20"><use href="#ico-right"/></svg></button>
-      </div>
-    </div>
-
-    <div class="row" id="search-row" style="display:none">
-      <div class="row-header"><h2 class="row-title">Resultados de búsqueda</h2></div>
-      <div class="row-wrapper">
-        <div class="row-scroll" id="search-grid"></div>
-      </div>
-    </div>
-
-  </div>
-
-  <div class="pending-state" id="pending-state" style="display:none;">
-    <h2>Próximamente</h2>
-    <p>Estamos trabajando para traer los mejores servidores de Basketball. Vuelve pronto.</p>
-  </div>
-</main>
-
-<!-- MODAL REPRODUCTOR -->
-<div class="modal" id="player-modal">
-  <div class="modal-box">
-    <div class="modal-header">
-      <h3 id="server-title" style="font-weight:800; font-size:18px;">Selecciona un servidor</h3>
-      <button class="icon-btn" id="close-player"><svg width="20" height="20"><use href="#ico-close"/></svg></button>
-    </div>
-    <div class="modal-body" id="server-view">
-      <p id="server-subtitle" style="color:var(--text-dim); margin-bottom:16px; font-size:14px;"></p>
-      <div class="server-tabs" id="server-tabs"></div>
-      <div id="server-list"></div>
-    </div>
-    <div class="modal-body" id="player-view" style="display:none; padding:0; background:#000;">
-      <video id="video" class="player-video" controls playsinline></video>
-      <div id="player-loading" style="padding:60px 24px; text-align:center; color:var(--text-dim); font-size:15px;">
-        <div style="width:36px; height:36px; border:3px solid rgba(255,255,255,0.1); border-top-color:#fff; border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 16px;"></div>
-        Conectando al servidor...
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL AVISO LEGAL -->
-<div class="modal" id="disclaimer-modal">
-  <div class="modal-box" style="max-width:600px;">
-    <div class="modal-header">
-      <h3 style="font-size:18px; font-weight:800;">Aviso Legal</h3>
-      <button class="icon-btn" id="close-disclaimer"><svg width="20" height="20"><use href="#ico-close"/></svg></button>
-    </div>
-    <div class="modal-body" style="color:var(--text-dim); line-height:1.7; font-size:14px;">
-      <p><strong>TatoTV</strong> es un agregador de enlaces públicos de internet. No alojamos ni transmitimos ningún tipo de material audiovisual directo de nuestros servidores.</p>
-      <p style="margin-top:16px;">Toda la reproducción se realiza a través de fuentes de terceros. 
-        Simplemente somos un buscador inteligente que busca en todo internet enlaces totalmente públicos en páginas públicas que cualquier persona
-        con conocimiento de búsqueda de internet pueda encontrar, nuestro trabajo es simplemente facilitar el acceso a estos enlaces. 
-        TatoTV no busca lucrar de ninguna manera con el material aquí encontrado ni busca violar ningún derecho ya que se desconoce la titularidad y solamente se hace la búsqueda
-        a enlaces disponibles. El uso de esta herramienta es responsabilidad del usuario y al utilizarla el usuario final desliga completamente a TatoTV y a sus creadores del uso indebido o malicioso
-        que le puedan dar a esta plataforma, a su código fuente, a sus diseños y a su contenido audiovisual.</p>
-    </div>
-  </div>
-</div>
-
-<!-- OVERLAY DE BÚSQUEDA -->
-<div class="search-overlay" id="search-overlay">
-  <div class="search-overlay-box">
-    <div style="width:50px; height:50px; border:4px solid rgba(255,255,255,0.1); border-top-color:#fff; border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 20px;"></div>
-    <h2 id="search-overlay-title" style="font-size:20px; font-weight:800; margin-bottom:8px;">Buscando canales...</h2>
-    <p style="color:var(--text-dim); font-size:14px;">Analizando fuentes en vivo. Esto puede tardar unos segundos.</p>
-    <div class="progress-bar"><div class="progress-fill" id="search-overlay-bar"></div></div>
-  </div>
-</div>
-
-<script>
-// ── BLOQUEO DE INSPECT / DEVTOOLS ──
-// CORRECCIÓN (Bug C): en localhost permitimos DevTools para poder depurar.
-// En producción (Netlify) se mantiene el bloqueo como estaba.
-if (!["localhost", "127.0.0.1"].includes(window.location.hostname)) {
-  document.addEventListener('contextmenu', e => e.preventDefault());
-  document.addEventListener('keydown', e => {
-      if (e.key === 'F12' || 
-          (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key)) ||
-          (e.metaKey && e.altKey && ['I', 'J', 'C'].includes(e.key)) ||
-          (e.ctrlKey && e.key === 'U')) {
-          e.preventDefault();
-      }
-  });
-}
-
-(()=>{
-"use strict";
-
-// CORRECCIÓN (Bug A): API auto-detecta localhost vs producción.
-// En local llama a http://localhost:8000; en Netlify a Render.
-const FALLBACK_IMG = "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/89/Camp_Nou_%28Joan_Gamper_2019%29.jpg/800px-Camp_Nou_%28Joan_Gamper_2019%29.jpg";
-const API = (
-  ["localhost", "127.0.0.1"].includes(window.location.hostname)
-    ? "http://localhost:8000"
-    : "http://localhost:3000"
-);
-
-let sportsList = [], currentSport = null, currentSportMeta = null, allMatches = [], allChannels = [], hlsInstance = null;
-let heroInterval = null, currentHeroIndex = 0, currentLiveMatches = [];
-const thumbCache = new Map(); // Caché de miniaturas
-
-const $sportTabs = document.getElementById("sport-tabs");
-const $sideMenuTabs = document.getElementById("side-menu-tabs");
-const $contentWrapper = document.getElementById("content-wrapper"), $pendingState = document.getElementById("pending-state");
-const $hero = document.getElementById("hero");
-const $liveRow = document.getElementById("live-row"), $liveGrid = document.getElementById("live-grid");
-const $channelsRow = document.getElementById("channels-row"), $channelsGrid = document.getElementById("channels-grid");
-const $upcomingRow = document.getElementById("upcoming-row"), $upcomingGrid = document.getElementById("upcoming-grid");
-const $recentRow = document.getElementById("recent-row"), $recentGrid = document.getElementById("recent-grid");
-const $searchRow = document.getElementById("search-row"), $searchGrid = document.getElementById("search-grid");
-const $heroContent = document.getElementById("hero-content"), $heroTitle = document.getElementById("hero-title"), $heroLogo = document.getElementById("hero-logo"), $heroDesc = document.getElementById("hero-desc"), $heroBg = document.getElementById("hero-bg"), $heroSkeleton = document.getElementById("hero-skeleton");
-const $dynamicBg = document.getElementById("dynamic-bg");
-const $modal = document.getElementById("player-modal"), $closePlayer = document.getElementById("close-player");
-const $serverView = document.getElementById("server-view"), $playerView = document.getElementById("player-view"), $video = document.getElementById("video");
-const $searchOverlay = document.getElementById("search-overlay"), $searchOverlayTitle = document.getElementById("search-overlay-title"), $searchOverlayBar = document.getElementById("search-overlay-bar");
-const $searchInput = document.getElementById("search-input");
-
-const $menuBtn = document.getElementById("menu-btn");
-const $sideMenu = document.getElementById("side-menu");
-const $menuBackdrop = document.getElementById("menu-backdrop");
-const $closeMenu = document.getElementById("close-menu");
-const $sideDisclaimerBtn = document.getElementById("side-disclaimer-btn");
-
-const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-
-function toggleMenu(open) {
-  $sideMenu.classList.toggle("open", open);
-  $menuBackdrop.classList.toggle("open", open);
-}
-$menuBtn.addEventListener("click", () => toggleMenu(true));
-$closeMenu.addEventListener("click", () => toggleMenu(false));
-$menuBackdrop.addEventListener("click", () => toggleMenu(false));
-
-function setupScrollers() {
-  document.querySelectorAll('.row-wrapper').forEach(wrapper => {
-    const prev = wrapper.querySelector('.nav-btn.prev');
-    const next = wrapper.querySelector('.nav-btn.next');
-    const scrollEl = wrapper.querySelector('.row-scroll, .channel-row');
-    if (!prev || !next || !scrollEl) return;
-
-    prev.onclick = () => scrollEl.scrollBy({ left: -scrollEl.clientWidth * 0.75, behavior: 'smooth' });
-    next.onclick = () => scrollEl.scrollBy({ left: scrollEl.clientWidth * 0.75, behavior: 'smooth' });
-
-    const updateArrows = () => {
-      prev.style.opacity = scrollEl.scrollLeft <= 10 ? '0' : '1';
-      next.style.opacity = scrollEl.scrollLeft >= scrollEl.scrollWidth - scrollEl.clientWidth - 10 ? '0' : '1';
-    };
-    scrollEl.addEventListener('scroll', updateArrows);
-    window.addEventListener('resize', updateArrows);
-    setTimeout(updateArrows, 100);
-  });
-}
-
-async function loadSports() {
-  try {
-    const res = await fetch(`${API}/api/sports`);
-    if (res.ok) {
-      sportsList = await res.json();
-      renderTabs();
-      if (sportsList.length > 0 && !currentSport) {
-        const defaultSport = sportsList.find(s => s.available) || sportsList[0];
-        selectSport(defaultSport.key);
+    @keyframes md-ripple {
+      to {
+        transform: scale(4);
+        opacity: 0;
       }
     }
-  } catch(e) { 
-    console.error("Error conectando:", e); 
-    $liveGrid.innerHTML = `<p style="padding:20px; color:#aaa;">No se pudo conectar. Revisa que el backend esté corriendo.</p>`;
-  }
-}
 
-function renderTabs() {
-  const tabsHTML = sportsList.map(s => {
-    const isAvailable = s.available !== false;
-    const disabledClass = isAvailable ? '' : 'disabled';
-    return `
-    <button class="sport-tab ${s.key === currentSport ? 'active' : ''} ${disabledClass}" data-sport="${s.key}">
+    .md-snackbar {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translate(-50%, 200%);
+      background: #2a2a2a;
+      color: #fff;
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: var(--md-elev-3);
+      transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+      z-index: 10000;
+      max-width: calc(100% - 48px);
+      text-align: center;
+    }
+
+    .md-snackbar.show {
+      transform: translate(-50%, 0);
+    }
+
+    #dynamic-bg {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      background-size: cover;
+      background-position: center 20%;
+      filter: blur(80px) opacity(0.35) saturate(1.8);
+      transition: background-image 1.2s ease, opacity 1.2s ease;
+      background-color: #000;
+    }
+
+    #dynamic-bg-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background:
+        radial-gradient(circle at 50% 0%, transparent 0%, #000 70%),
+        linear-gradient(to bottom, transparent 0%, #000 85%);
+      pointer-events: none;
+    }
+
+    .top-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: var(--header-h);
+      padding: 0 var(--pad);
+      background: #000;
+      border-bottom: 1px solid #111;
+      transition: all 0.4s ease;
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 900;
+      font-size: 22px;
+      letter-spacing: -0.5px;
+      color: #fff;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+
+    .sport-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 4px 0;
+    }
+
+    .sport-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .sport-tab {
+      padding: 8px 20px;
+      border-radius: var(--radius-pill);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: var(--md-transition);
+      border: none;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .sport-tab:hover:not(.disabled) {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .sport-tab.active {
+      background: #ffffff;
+      color: #000000;
+      font-weight: 800;
+      box-shadow: var(--md-elev-1);
+    }
+
+    .sport-tab.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .sport-tab.disabled::after {
+      content: "PROXIMAMENTE";
+      font-size: 9px;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .sport-tab svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      cursor: pointer;
+      transition: var(--md-transition);
+      border: 1px solid transparent;
+      position: relative;
+    }
+
+    .icon-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .icon-btn .badge-dot {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 6px var(--accent);
+    }
+
+    .theme-picker {
+      display: flex;
+      gap: 6px;
+      padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-pill);
+    }
+
+    .theme-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), border-color 0.2s ease;
+    }
+
+    .theme-dot:hover {
+      transform: scale(1.15);
+    }
+
+    .theme-dot.active {
+      border-color: #fff;
+      transform: scale(1.15);
+    }
+
+    .theme-dot[data-theme="default"] {
+      background: #e50914;
+    }
+
+    .theme-dot[data-theme="emerald"] {
+      background: #10b981;
+    }
+
+    .theme-dot[data-theme="amber"] {
+      background: #f59e0b;
+    }
+
+    .theme-dot[data-theme="rose"] {
+      background: #f43f5e;
+    }
+
+    .theme-dot[data-theme="violet"] {
+      background: #8b5cf6;
+    }
+
+    .hero-search-container {
+      position: fixed;
+      top: calc(var(--header-h) + 16px);
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 32px);
+      max-width: 600px;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      background: var(--glass-bg);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-pill);
+      padding: 0 20px;
+      height: 48px;
+      box-shadow: var(--md-elev-2);
+      transition: var(--md-transition);
+    }
+
+    .hero-search-container:focus-within {
+      background: rgba(40, 40, 40, 0.8);
+      border-color: rgba(255, 255, 255, 0.25);
+      box-shadow: var(--md-elev-3);
+    }
+
+    .hero-search-container svg {
+      color: #888;
+      margin-right: 10px;
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+    }
+
+    .hero-search-container input {
+      background: none;
+      border: none;
+      outline: none;
+      color: #fff;
+      width: 100%;
+      font-family: inherit;
+      font-size: 15px;
+    }
+
+    .hero-search-container input::placeholder {
+      color: #888;
+    }
+
+    .menu-btn {
+      display: none;
+    }
+
+    .menu-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(5px);
+      z-index: 1500;
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.3s;
+    }
+
+    .menu-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .side-menu {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 280px;
+      background: #111;
+      border-right: 1px solid var(--glass-border);
+      z-index: 1600;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      overflow-y: auto;
+    }
+
+    .side-menu.open {
+      transform: translateX(0);
+    }
+
+    .side-menu-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .side-menu-tabs {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .side-menu-tabs .sport-tab {
+      width: 100%;
+      justify-content: flex-start;
+      padding: 12px 16px;
+      font-size: 15px;
+    }
+
+    .side-menu-btn {
+      padding: 12px 16px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      color: #fff;
+      font-weight: 600;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      text-align: left;
+      transition: var(--md-transition);
+    }
+
+    .side-menu-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .side-menu-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+
+    .hero {
+      position: relative;
+      width: 100%;
+      height: 75vh;
+      min-height: 500px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 var(--pad) 40px;
+      margin-bottom: 20px;
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 1s ease;
+      mask-image: linear-gradient(to top, transparent 0%, #000 70%);
+      -webkit-mask-image: linear-gradient(to top, transparent 0%, #000 70%);
+    }
+
+    .hero-bg.loaded {
+      opacity: 0.6;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 800px;
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      animation: slideUp 0.8s cubic-bezier(0.2, 0, 0, 1) forwards;
+    }
+
+    .hero-logo {
+      font-size: 12px;
+      font-weight: 800;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hero-logo .dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--accent);
+    }
+
+    .hero-title {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -1px;
+      color: #fff;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+    }
+
+    .hero-desc {
+      font-size: 15px;
+      color: #d4d4d8;
+      max-width: 600px;
+      margin-bottom: 8px;
+      font-weight: 500;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-primary {
+      background: #ffffff;
+      color: #000;
+      padding: 12px 28px;
+      border-radius: var(--radius-pill);
+      font-size: 15px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: var(--md-transition);
+      border: none;
+      box-shadow: var(--md-elev-2);
+    }
+
+    .btn-primary:hover {
+      background: #f4f4f5;
+      box-shadow: var(--md-elev-3);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active {
+      box-shadow: var(--md-elev-1);
+      transform: translateY(0);
+    }
+
+    .btn-primary svg {
+      width: 18px;
+      height: 18px;
+      fill: #000;
+    }
+
+    .main-content {
+      padding: 0 var(--pad) 100px;
+      position: relative;
+      z-index: 10;
+      margin-top: 20px;
+    }
+
+    .row {
+      margin-bottom: 40px;
+    }
+
+    .row-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .row-title {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #fff;
+    }
+
+    .row-wrapper {
+      position: relative;
+    }
+
+    .row-scroll {
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      padding: 10px 0 20px;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .row-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(20, 20, 20, 0.85);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      cursor: pointer;
+      transition: var(--md-transition);
+      opacity: 0;
+      pointer-events: none;
+      box-shadow: var(--md-elev-2);
+    }
+
+    .row-wrapper:hover .nav-btn {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .nav-btn:hover {
+      background: #fff;
+      color: #000;
+      transform: translateY(-50%) scale(1.1);
+      box-shadow: var(--md-elev-3);
+    }
+
+    .nav-btn.prev {
+      left: -20px;
+    }
+
+    .nav-btn.next {
+      right: -20px;
+    }
+
+    .match-card {
+      flex: 0 0 280px;
+      background: #111;
+      border-radius: var(--radius-card);
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.35s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.35s cubic-bezier(0.2, 0, 0, 1);
+      scroll-snap-align: start;
+      border: 1px solid var(--glass-border);
+      position: relative;
+      box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.4),
+        0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .match-card:hover,
+    .match-card:focus-visible {
+      transform: translateY(-8px) scale(1.01);
+      box-shadow:
+        0 12px 28px rgba(0, 0, 0, 0.5),
+        0 4px 8px rgba(0, 0, 0, 0.3);
+      z-index: 5;
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .match-thumb {
+      position: relative;
+      aspect-ratio: 16/9;
+      background: #222;
+      overflow: hidden;
+    }
+
+    .match-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.6s cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    .match-card:hover .match-thumb img {
+      transform: scale(1.06);
+    }
+
+    .match-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, transparent 60%);
+    }
+
+    .match-info {
+      padding: 16px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .match-title {
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .match-meta {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge {
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      z-index: 3;
+    }
+
+    .badge-live {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(229, 9, 20, 0.35);
+    }
+
+    .badge-upcoming {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      color: #fff;
+    }
+
+    .fav-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 5;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--md-transition);
+      backdrop-filter: blur(10px);
+      opacity: 0;
+    }
+
+    .match-card:hover .fav-btn,
+    .match-card:focus-within .fav-btn,
+    .fav-btn.is-fav {
+      opacity: 1;
+    }
+
+    .fav-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .fav-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.2;
+      transition: fill 0.2s;
+    }
+
+    .fav-btn.is-fav {
+      color: var(--accent);
+      background: rgba(0, 0, 0, 0.85);
+      border-color: var(--accent);
+    }
+
+    .fav-btn.is-fav svg {
+      fill: var(--accent);
+    }
+
+    .play-hover-btn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: var(--md-transition);
+      pointer-events: none;
+      backdrop-filter: blur(10px);
+      z-index: 4;
+      box-shadow: var(--md-elev-3);
+    }
+
+    .play-hover-btn svg {
+      width: 22px;
+      height: 22px;
+      fill: #000;
+      margin-left: 4px;
+    }
+
+    .match-card:hover .play-hover-btn {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .channel-row {
+      display: flex;
+      gap: 24px;
+      overflow-x: auto;
+      padding: 10px 0 20px;
+      scrollbar-width: none;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .channel-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .channel-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: var(--md-transition);
+      flex: 0 0 90px;
+    }
+
+    .channel-logo-wrap {
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 1px solid var(--glass-border);
+      transition: var(--md-transition);
+      box-shadow: var(--md-elev-1);
+      backdrop-filter: blur(10px);
+    }
+
+    .channel-card:hover .channel-logo-wrap,
+    .channel-card:focus-visible .channel-logo-wrap {
+      border-color: rgba(255, 255, 255, 0.4);
+      transform: translateY(-6px) scale(1.04);
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: var(--md-elev-3);
+    }
+
+    .channel-logo-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .channel-logo-wrap .fallback {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--text-dim);
+    }
+
+    .channel-name {
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+      color: var(--text-dim);
+      max-width: 90px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: 0.3s;
+    }
+
+    .channel-card:hover .channel-name {
+      color: #fff;
+    }
+
+    .pending-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 40vh;
+      text-align: center;
+      animation: fadeIn 0.5s;
+    }
+
+    .pending-state h2 {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .pending-state p {
+      color: var(--text-dim);
+      font-size: 15px;
+      max-width: 400px;
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: -200% 0;
+      }
+
+      100% {
+        background-position: 200% 0;
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes modalIn {
+      from {
+        opacity: 0;
+        transform: scale(0.92);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes stagePulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.6;
+      }
+    }
+
+    @keyframes scoreIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .skl {
+      background: linear-gradient(90deg, #141417 0%, #1f1f24 50%, #141417 100%);
+      background-size: 200% 100%;
+      animation: shimmer 1.8s ease-in-out infinite;
+      border-radius: var(--radius-card);
+    }
+
+    .skl-hero {
+      width: 100%;
+      height: 75vh;
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      border-radius: 0;
+    }
+
+    .skl-card {
+      flex: 0 0 280px;
+      aspect-ratio: 16/9;
+    }
+
+    .skl-circle {
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
+      flex: 0 0 90px;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    .modal.open {
+      display: flex;
+      animation: fadeIn 0.3s;
+    }
+
+    .modal-box {
+      width: 100%;
+      max-width: 800px;
+      background: rgba(18, 18, 18, 0.95);
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: var(--md-elev-5);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(40px);
+      -webkit-backdrop-filter: blur(40px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal.open .modal-box {
+      animation: modalIn 0.35s cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .modal-body {
+      padding: 24px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+
+    .server-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 4px;
+    }
+
+    .server-tab {
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      color: #fff;
+      cursor: pointer;
+      font-weight: 600;
+      transition: var(--md-transition);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .server-tab.active {
+      background: #fff;
+      color: #000;
+      box-shadow: var(--md-elev-2);
+      border-color: #fff;
+    }
+
+    .server-btn {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      padding: 14px 20px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--glass-border);
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: var(--md-transition);
+      color: #fff;
+      text-align: left;
+      font-size: 15px;
+      font-weight: 600;
+      box-shadow: var(--md-elev-1);
+    }
+
+    .server-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.25);
+      box-shadow: var(--md-elev-2);
+      transform: translateX(3px);
+    }
+
+    .server-btn:active {
+      box-shadow: none;
+      transform: translateX(0);
+    }
+
+    .player-video {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #000;
+      display: none;
+    }
+
+    .player-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 16px;
+      background: rgba(0, 0, 0, 0.8);
+      border-bottom: 1px solid var(--glass-border);
+      flex-wrap: wrap;
+    }
+
+    .quality-group {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .quality-label {
+      color: var(--text-dim);
+      font-weight: 600;
+      margin-right: 4px;
+    }
+
+    .quality-btn {
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      color: #fff;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      transition: var(--md-transition);
+    }
+
+    .quality-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .quality-btn.active {
+      background: #fff;
+      color: #000;
+      border-color: #fff;
+    }
+
+    .scores-overlay {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 20;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 14px;
+      padding: 12px 16px;
+      box-shadow: var(--md-elev-4);
+      max-width: 320px;
+      animation: scoreIn 0.35s ease;
+      pointer-events: none;
+    }
+
+    .scores-overlay.hidden {
+      display: none;
+    }
+
+    .scores-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+
+    .scores-teams {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+    }
+
+    .scores-value {
+      font-size: 20px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: -0.5px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .scores-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+
+    .scores-live-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 6px var(--accent);
+      animation: stagePulse 1s ease-in-out infinite;
+    }
+
+    .scores-events {
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      max-height: 90px;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+
+    .scores-events::-webkit-scrollbar {
+      display: none;
+    }
+
+    .scores-event {
+      font-size: 11px;
+      color: #d4d4d8;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .scores-event .minute {
+      color: var(--accent);
+      font-weight: 700;
+      min-width: 26px;
+    }
+
+    .player-relative {
+      position: relative;
+      width: 100%;
+    }
+
+    .search-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 3000;
+      background:
+        linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.95)),
+        url("https://thumb.wikimedia.org/wikipedia/commons/thumb/8/89/Camp_Nou_%28Joan_Gamper_2019%29.jpg/800px-Camp_Nou_%28Joan_Gamper_2019%29.jpg") center/cover no-repeat;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .search-overlay.active {
+      display: flex;
+    }
+
+    .search-overlay-box {
+      text-align: center;
+      width: 100%;
+      max-width: 440px;
+      background: var(--glass-bg);
+      padding: 30px 24px;
+      border-radius: 24px;
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: var(--md-elev-4);
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      margin-top: 20px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--brand);
+      width: 0%;
+      transition: width 0.3s;
+      border-radius: 3px;
+    }
+
+    #search-overlay-msg {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-top: 12px;
+      min-height: 20px;
+      font-weight: 500;
+      animation: stagePulse 1s ease-in-out infinite;
+    }
+
+    .player-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    .player-loading-text {
+      color: #aaa;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .news-sidebar {
+      display: none;
+      position: fixed;
+      top: calc(var(--header-h) + 80px);
+      right: 20px;
+      width: 320px;
+      max-height: calc(100vh - var(--header-h) - 100px);
+      overflow-y: auto;
+      background: rgba(18, 18, 18, 0.85);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 16px;
+      z-index: 900;
+      box-shadow: var(--md-elev-3);
+      scrollbar-width: thin;
+      scrollbar-color: #333 transparent;
+    }
+
+    .news-sidebar::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .news-sidebar::-webkit-scrollbar-thumb {
+      background: #333;
+      border-radius: 3px;
+    }
+
+    .news-sidebar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .news-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .news-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.3px;
+    }
+
+    .news-sport {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+      background: rgba(255, 255, 255, 0.08);
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    .news-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .news-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid transparent;
+      text-decoration: none;
+      transition: var(--md-transition);
+      overflow: hidden;
+    }
+
+    .news-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateX(4px);
+      box-shadow: var(--md-elev-1);
+    }
+
+    .news-item-img {
+      width: 100%;
+      height: 110px;
+      border-radius: 8px;
+      object-fit: cover;
+      margin-bottom: 4px;
+      background: #1a1a1a;
+    }
+
+    .news-item-source {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .news-item-title {
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.35;
+      color: #fff;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .news-item-desc {
+      font-size: 11px;
+      color: var(--text-dim);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .news-skeleton {
+      height: 70px;
+      border-radius: 12px;
+      background: linear-gradient(90deg, #141417 0%, #1f1f24 50%, #141417 100%);
+      background-size: 200% 100%;
+      animation: shimmer 1.8s ease-in-out infinite;
+    }
+
+    .news-empty {
+      color: var(--text-dim);
+      font-size: 13px;
+      padding: 12px;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 1024px) {
+      .match-card {
+        flex: 0 0 260px;
+      }
+
+      .skl-card {
+        flex: 0 0 260px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      :root {
+        --header-h: 56px;
+        --pad: 16px;
+      }
+
+      .top-nav {
+        padding: 0 16px;
+      }
+
+      .brand {
+        font-size: 20px;
+      }
+
+      .brand-logo {
+        width: 28px;
+        height: 28px;
+      }
+
+      .nav-left .sport-tabs {
+        display: none;
+      }
+
+      .menu-btn {
+        display: flex;
+      }
+
+      .hero-search-container {
+        top: calc(var(--header-h) + 12px);
+        height: 44px;
+        padding: 0 16px;
+      }
+
+      .hero-search-container input {
+        font-size: 14px;
+      }
+
+      .nav-right {
+        margin-left: auto;
+      }
+
+      .icon-btn#disclaimer-btn {
+        display: none;
+      }
+
+      .theme-picker {
+        display: none;
+      }
+
+      .hero {
+        height: 65vh;
+        min-height: 450px;
+        padding-bottom: 30px;
+        text-align: center;
+        align-items: center;
+      }
+
+      .hero-content {
+        align-items: center;
+        margin-top: 20px;
+      }
+
+      .hero-title {
+        font-size: 1.8rem;
+      }
+
+      .hero-desc {
+        font-size: 14px;
+        max-width: 90%;
+      }
+
+      .hero-actions {
+        justify-content: center;
+        width: 100%;
+      }
+
+      .btn-primary {
+        width: 100%;
+        justify-content: center;
+        padding: 12px;
+        font-size: 14px;
+      }
+
+      .main-content {
+        margin-top: 10px;
+        padding-bottom: 60px;
+      }
+
+      .nav-btn {
+        display: none !important;
+      }
+
+      .match-card {
+        flex: 0 0 240px;
+      }
+
+      .match-title {
+        font-size: 14px;
+      }
+
+      .match-info {
+        padding: 12px;
+      }
+
+      .row-title {
+        font-size: 18px;
+      }
+
+      .channel-card {
+        flex: 0 0 80px;
+        gap: 8px;
+      }
+
+      .channel-logo-wrap {
+        width: 70px;
+        height: 70px;
+        border-radius: 18px;
+      }
+
+      .channel-name {
+        font-size: 12px;
+        max-width: 80px;
+      }
+
+      .skl-card {
+        flex: 0 0 240px;
+      }
+
+      .skl-circle {
+        width: 70px;
+        height: 70px;
+        border-radius: 18px;
+        flex: 0 0 80px;
+      }
+
+      .modal {
+        padding: 0;
+      }
+
+      .modal-box {
+        height: 100dvh;
+        max-height: 100dvh;
+        border-radius: 0;
+        border: none;
+      }
+
+      .modal-header {
+        padding: 16px 20px;
+        border-radius: 0;
+      }
+
+      .modal-body {
+        padding: 20px;
+        flex: 1;
+        max-height: none;
+      }
+
+      .server-tab {
+        padding: 8px 14px;
+        font-size: 13px;
+      }
+
+      .server-btn {
+        padding: 14px;
+        font-size: 14px;
+      }
+
+      .md-snackbar {
+        bottom: 16px;
+        max-width: calc(100% - 32px);
+      }
+
+      .scores-overlay {
+        top: 8px;
+        left: 8px;
+        padding: 8px 10px;
+        max-width: 240px;
+      }
+
+      .scores-value {
+        font-size: 16px;
+      }
+
+      .scores-teams {
+        font-size: 11px;
+      }
+
+      .fav-btn {
+        opacity: 1;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero-title {
+        font-size: 1.5rem;
+      }
+
+      .match-card {
+        flex: 0 0 220px;
+      }
+
+      .skl-card {
+        flex: 0 0 220px;
+      }
+    }
+
+    @media (min-width: 1600px) {
+      :root {
+        --pad: 60px;
+      }
+
+      .match-card {
+        flex: 0 0 340px;
+      }
+
+      .skl-card {
+        flex: 0 0 340px;
+      }
+
+      .match-title {
+        font-size: 18px;
+      }
+
+      .match-meta {
+        font-size: 15px;
+      }
+
+      .channel-card {
+        flex: 0 0 120px;
+      }
+
+      .channel-logo-wrap {
+        width: 100px;
+        height: 100px;
+        border-radius: 28px;
+      }
+
+      .skl-circle {
+        width: 100px;
+        height: 100px;
+        border-radius: 28px;
+        flex: 0 0 120px;
+      }
+
+      .channel-name {
+        font-size: 15px;
+        max-width: 120px;
+      }
+
+      .row-title {
+        font-size: 28px;
+      }
+    }
+
+    @media (min-width: 1400px) {
+      .news-sidebar {
+        display: block;
+      }
+
+      .main-content {
+        padding-right: 360px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <svg class="hidden" aria-hidden="true" style="position: absolute; width: 0; height: 0; overflow: hidden">
+    <defs>
+      <symbol id="sport-football" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7l-2.2 1.6.9 2.4h2.6l.9-2.4z" />
+        <path d="M7 9.7l1.7 1.5-.5 2.4-2.2.5" />
+        <path d="M17 9.7l-1.7 1.5.5 2.4 2.2.5" />
+        <path d="M9.8 17l1.2-1.5h2l1.2 1.5" />
+      </symbol>
+      <symbol id="sport-basketball" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 3v18" />
+        <path d="M3 12h18" />
+        <path d="M5.5 5.5c3.5 3.5 3.5 9.5 0 13" />
+        <path d="M18.5 5.5c-3.5 3.5-3.5 9.5 0 13" />
+      </symbol>
+      <symbol id="sport-hockey" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 5l10 14" />
+        <path d="M15 19h4a2 2 0 0 0 2-2" />
+        <ellipse cx="12" cy="20" rx="3" ry="1" />
+      </symbol>
+      <symbol id="ico-play" viewBox="0 0 24 24" fill="currentColor">
+        <polygon points="6 3 20 12 6 21 6 3" />
+      </symbol>
+      <symbol id="ico-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </symbol>
+      <symbol id="ico-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      </symbol>
+      <symbol id="ico-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18" />
+        <line x1="6" y1="6" x2="18" y2="18" />
+      </symbol>
+      <symbol id="ico-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6" />
+      </symbol>
+      <symbol id="ico-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="9 18 15 12 9 6" />
+      </symbol>
+      <symbol id="ico-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round">
+        <line x1="3" y1="12" x2="21" y2="12" />
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="3" y1="18" x2="21" y2="18" />
+      </symbol>
+      <symbol id="ico-heart" viewBox="0 0 24 24">
+        <path
+          d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+      </symbol>
+      <symbol id="ico-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+      </symbol>
+    </defs>
+  </svg>
+
+  <div id="dynamic-bg"></div>
+  <div id="dynamic-bg-overlay"></div>
+
+  <div class="menu-backdrop" id="menu-backdrop"></div>
+  <aside class="side-menu" id="side-menu">
+    <div class="side-menu-header">
+      <span class="brand">
+        <img src="https://assets.football-logos.cc/logos/spain/512x512/barcelona.9ee7ed85.png" class="brand-logo"
+          style="width: 28px; height: 28px" alt="Logo" />
+        TatoTV
+      </span>
+      <button class="icon-btn" id="close-menu" style="width: 36px; height: 36px; background: rgba(255, 255, 255, 0.05)">
+        <svg width="20" height="20">
+          <use href="#ico-close" />
+        </svg>
+      </button>
+    </div>
+    <div class="side-menu-tabs" id="side-menu-tabs"></div>
+
+    <div>
+      <div class="side-menu-section-title">Tema</div>
+      <div class="theme-picker">
+        <div class="theme-dot active" data-theme="default" title="Default"></div>
+        <div class="theme-dot" data-theme="emerald" title="Emerald"></div>
+        <div class="theme-dot" data-theme="amber" title="Amber"></div>
+        <div class="theme-dot" data-theme="rose" title="Rose"></div>
+        <div class="theme-dot" data-theme="violet" title="Violet"></div>
+      </div>
+    </div>
+
+    <button class="side-menu-btn" id="side-disclaimer-btn">
+      <svg width="20" height="20">
+        <use href="#ico-shield" />
+      </svg> Aviso Legal
+    </button>
+  </aside>
+
+  <header class="top-nav" id="top-nav">
+    <div class="nav-left">
+      <button class="icon-btn menu-btn" id="menu-btn">
+        <svg width="24" height="24">
+          <use href="#ico-menu" />
+        </svg>
+      </button>
+      <a href="#" class="brand">
+        <img src="https://assets.football-logos.cc/logos/spain/512x512/barcelona.9ee7ed85.png" class="brand-logo"
+          alt="Logo" />
+        TatoTV
+      </a>
+      <div class="sport-tabs" id="sport-tabs"></div>
+    </div>
+    <div class="nav-right">
+      <div class="theme-picker" id="theme-picker-top">
+        <div class="theme-dot active" data-theme="default" title="Default"></div>
+        <div class="theme-dot" data-theme="emerald" title="Emerald"></div>
+        <div class="theme-dot" data-theme="amber" title="Amber"></div>
+        <div class="theme-dot" data-theme="rose" title="Rose"></div>
+        <div class="theme-dot" data-theme="violet" title="Violet"></div>
+      </div>
+      <button class="icon-btn" id="notif-btn" title="Activar notificaciones" aria-label="Notificaciones">
+        <svg width="20" height="20">
+          <use href="#ico-bell" />
+        </svg>
+      </button>
+      <button class="icon-btn" id="disclaimer-btn" title="Aviso Legal" aria-label="Aviso Legal">
+        <svg width="20" height="20">
+          <use href="#ico-shield" />
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="hero-search-container">
+    <svg>
+      <use href="#ico-search" />
+    </svg>
+    <input type="search" id="search-input" placeholder="Buscar equipos, ligas o partidos..." autocomplete="off" />
+  </div>
+
+  <section class="hero" id="hero">
+    <div class="skl skl-hero" id="hero-skeleton"></div>
+    <img class="hero-bg" id="hero-bg" alt="" />
+    <div class="hero-content" id="hero-content">
+      <div class="hero-logo" id="hero-logo"><span class="dot"></span> EN VIVO</div>
+      <div class="hero-title" id="hero-title">Cargando...</div>
+      <div class="hero-desc" id="hero-desc">Cargando información...</div>
+      <div class="hero-actions">
+        <button class="btn-primary md-ripple-host" id="hero-play-btn">
+          <svg>
+            <use href="#ico-play" />
+          </svg> Reproducir
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <main class="main-content">
+    <div id="content-wrapper">
+      <div class="row" id="live-row" style="display: none">
+        <div class="row-header">
+          <h2 class="row-title">En vivo ahora</h2>
+        </div>
+        <div class="row-wrapper">
+          <button class="nav-btn prev md-ripple-host">
+            <svg width="20" height="20">
+              <use href="#ico-left" />
+            </svg>
+          </button>
+          <div class="row-scroll" id="live-grid"></div>
+          <button class="nav-btn next md-ripple-host">
+            <svg width="20" height="20">
+              <use href="#ico-right" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="row" id="channels-row" style="display: none">
+        <div class="row-header">
+          <h2 class="row-title">Aplicaciones / Canales</h2>
+        </div>
+        <div class="row-wrapper">
+          <button class="nav-btn prev md-ripple-host">
+            <svg width="20" height="20">
+              <use href="#ico-left" />
+            </svg>
+          </button>
+          <div class="channel-row" id="channels-grid"></div>
+          <button class="nav-btn next md-ripple-host">
+            <svg width="20" height="20">
+              <use href="#ico-right" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="row" id="upcoming-row" style="display: none">
+        <div class="row-header">
+          <h2 class="row-title">Próximos partidos</h2>
+        </div>
+        <div class="row-wrapper">
+          <button class="nav-btn prev md-ripple-host">
+            <svg width="20" height="20">
+              <use href="#ico-left" />
+            </svg>
+          </button>
+          <div class="row-scroll" id="upcoming-grid"></div>
+          <button class="nav-btn next md-ripple-host">
+            <svg width="20" height="20">
+              <use href="#ico-right" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="row" id="recent-row" style="display: none">
+        <div class="row-header">
+          <h2 class="row-title">Resultados recientes</h2>
+        </div>
+        <div class="row-wrapper">
+          <button class="nav-btn prev md-ripple-host">
+            <svg width="20" height="20">
+              <use href="#ico-left" />
+            </svg>
+          </button>
+          <div class="row-scroll" id="recent-grid"></div>
+          <button class="nav-btn next md-ripple-host">
+            <svg width="20" height="20">
+              <use href="#ico-right" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="row" id="search-row" style="display: none">
+        <div class="row-header">
+          <h2 class="row-title">Resultados de búsqueda</h2>
+        </div>
+        <div class="row-wrapper">
+          <div class="row-scroll" id="search-grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pending-state" id="pending-state" style="display: none">
+      <h2>Próximamente</h2>
+      <p>Estamos trabajando para traer los mejores servidores de este deporte. Vuelve pronto.</p>
+    </div>
+
+    <aside class="news-sidebar" id="news-sidebar">
+      <div class="news-header">
+        <h2 class="news-title">Noticias</h2>
+        <span class="news-sport" id="news-sport-label">Fútbol</span>
+      </div>
+      <div class="news-list" id="news-list">
+        <div class="news-skeleton"></div>
+        <div class="news-skeleton"></div>
+        <div class="news-skeleton"></div>
+      </div>
+    </aside>
+  </main>
+
+  <div class="modal" id="player-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="server-title" style="font-weight: 800; font-size: 18px">Selecciona un servidor</h3>
+        <button class="icon-btn md-ripple-host" id="close-player">
+          <svg width="20" height="20">
+            <use href="#ico-close" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" id="server-view">
+        <p id="server-subtitle" style="color: var(--text-dim); margin-bottom: 16px; font-size: 14px"></p>
+        <div class="server-tabs" id="server-tabs"></div>
+        <div id="server-list"></div>
+      </div>
+      <div class="modal-body" id="player-view" style="display: none; padding: 0; background: #000">
+        <div class="player-toolbar">
+          <div class="quality-group">
+            <span class="quality-label">Calidad:</span>
+            <button class="quality-btn active" data-quality="-1">Auto</button>
+            <button class="quality-btn" data-quality="0">1080p</button>
+            <button class="quality-btn" data-quality="1">720p</button>
+            <button class="quality-btn" data-quality="2">480p</button>
+          </div>
+        </div>
+        <div class="player-relative">
+          <div class="scores-overlay hidden" id="scores-overlay">
+            <div class="scores-top">
+              <div class="scores-teams" id="scores-teams">- vs -</div>
+              <div class="scores-value" id="scores-value">0 - 0</div>
+            </div>
+            <div class="scores-meta">
+              <span class="scores-live-dot"></span>
+              <span id="scores-clock">-</span>
+            </div>
+            <div class="scores-events" id="scores-events"></div>
+          </div>
+          <video id="video" class="player-video" controls playsinline></video>
+          <div id="player-loading" style="padding: 60px 24px; text-align: center">
+            <div class="player-spinner"></div>
+            <div class="player-loading-text">Conectando al servidor...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="disclaimer-modal">
+    <div class="modal-box" style="max-width: 600px">
+      <div class="modal-header">
+        <h3 style="font-size: 18px; font-weight: 800">Aviso Legal</h3>
+        <button class="icon-btn md-ripple-host" id="close-disclaimer">
+          <svg width="20" height="20">
+            <use href="#ico-close" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" style="color: var(--text-dim); line-height: 1.7; font-size: 14px">
+        <p>
+          <strong>TatoTV</strong> es un agregador de enlaces públicos de internet. No alojamos ni transmitimos
+          ningún tipo de material audiovisual directo de nuestros servidores.
+        </p>
+        <p style="margin-top: 16px">
+          Toda la reproducción se realiza a través de fuentes de terceros. Simplemente somos un buscador
+          inteligente que busca en todo internet enlaces totalmente públicos en páginas públicas que cualquier
+          persona con conocimiento de búsqueda de internet pueda encontrar, nuestro trabajo es simplemente facilitar
+          el acceso a estos enlaces. TatoTV no busca lucrar de ninguna manera con el material aquí encontrado ni
+          busca violar ningún derecho ya que se desconoce la titularidad y solamente se hace la búsqueda a enlaces
+          disponibles. El uso de esta herramienta es responsabilidad del usuario y al utilizarla el usuario final
+          desliga completamente a TatoTV y a sus creadores del uso indebido o malicioso que le puedan dar a esta
+          plataforma, a su código fuente, a sus diseños y a su contenido audiovisual.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="search-overlay" id="search-overlay">
+    <div class="search-overlay-box">
+      <div class="player-spinner" style="width: 50px; height: 50px; border-width: 4px"></div>
+      <h2 id="search-overlay-title" style="font-size: 20px; font-weight: 800; margin-bottom: 8px">
+        Buscando canales...
+      </h2>
+      <p style="color: var(--text-dim); font-size: 14px">
+        Analizando fuentes en vivo. Esto puede tardar unos segundos.
+      </p>
+      <div class="progress-bar">
+        <div class="progress-fill" id="search-overlay-bar"></div>
+      </div>
+      <div id="search-overlay-msg">Iniciando búsqueda...</div>
+    </div>
+  </div>
+
+  <div class="md-snackbar" id="snackbar" role="status" aria-live="polite"></div>
+
+  <script>
+    if (!["localhost", "127.0.0.1"].includes(window.location.hostname)) {
+      document.addEventListener("contextmenu", (e) => e.preventDefault());
+      document.addEventListener("keydown", (e) => {
+        if (
+          e.key === "F12" ||
+          (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key)) ||
+          (e.metaKey && e.altKey && ["I", "J", "C"].includes(e.key)) ||
+          (e.ctrlKey && e.key === "U")
+        ) {
+          e.preventDefault();
+        }
+      });
+    }
+
+    (() => {
+      "use strict";
+
+      const API = ["localhost", "127.0.0.1"].includes(window.location.hostname)
+        ? "http://localhost:8000"
+        : "http://localhost:3000";
+
+      const FALLBACK_IMG_FOOTBALL =
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/89/Camp_Nou_%28Joan_Gamper_2019%29.jpg/800px-Camp_Nou_%28Joan_Gamper_2019%29.jpg";
+      const FALLBACK_IMG_BASKETBALL =
+        "https://www.si.com/.image/t_share/MTY4MTg2MDIzMDUzMjM5NTY5/1987-michael-jordan-001283802jpg.jpg";
+      const FALLBACK_IMG_NHL =
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4c/Ice_hockey_pictogram.svg/1024px-Ice_hockey_pictogram.svg.png";
+
+      const HAS_LOADED_KEY = "tatotv_first_load_done";
+      const FIRST_LOAD_WAIT_MS = 30000;
+
+      const STORAGE = {
+        THEME: "tatotv_theme",
+        QUALITY: "tatotv_quality",
+        FAVORITES: "tatotv_favorites",
+        NOTIFS: "tatotv_notifs",
+      };
+
+      const LOADING_STAGES = [
+        "Buscando en servidor 1...",
+        "Buscando en página 1...",
+        "Buscando en servidor 2...",
+        "Buscando en internet...",
+        "Buscando en servidor 3...",
+        "Buscando en página 3...",
+        "Conectando con la fuente...",
+        "Verificando respuesta...",
+        "Buscando en servidor 4...",
+        "Buscando en página 4...",
+        "Buscando en espejo alternativo...",
+        "Buscando en CDN...",
+        "Analizando resultados...",
+        "Buscando en servidor 5...",
+        "Buscando en página 5...",
+        "Buscando en servidor 6...",
+        "Verificando conexión...",
+        "Buscando en página 6...",
+        "Buscando en servidor 7...",
+        "Buscando en internet...",
+        "Buscando en página 7...",
+        "Buscando en servidor 8...",
+        "Optimizando datos...",
+        "Buscando en página 8...",
+        "Buscando en servidor 9...",
+        "Verificando señal...",
+        "Buscando en página 9...",
+        "Buscando en servidor 10...",
+        "Buscando en espejo...",
+        "Buscando en CDN...",
+        "Verificando calidad...",
+        "Cargando eventos...",
+        "Estableciendo sesión...",
+        "Conectando al stream...",
+        "Buscando en servidor 11...",
+        "Verificando disponibilidad...",
+        "Buscando en servidor 12...",
+        "Analizando tokens...",
+        "Buscando en servidor 13...",
+        "Casi listo...",
+        "Sincronizando datos...",
+        "Verificando geo-restricciones...",
+        "Optimizando stream...",
+        "Últimos ajustes...",
+        "Preparando reproducción...",
+      ];
+
+      let sportsList = [],
+        currentSport = null,
+        currentSportMeta = null,
+        allMatches = [],
+        allChannels = [],
+        hlsInstance = null;
+      let heroInterval = null,
+        currentHeroIndex = 0,
+        currentLiveMatches = [];
+      const thumbCache = new Map();
+
+      let loadingStagesInterval = null;
+      let loadingStagesIndex = 0;
+
+      let scoresInterval = null;
+      let currentMatchForScores = null;
+
+      const $sportTabs = document.getElementById("sport-tabs");
+      const $sideMenuTabs = document.getElementById("side-menu-tabs");
+      const $contentWrapper = document.getElementById("content-wrapper"),
+        $pendingState = document.getElementById("pending-state");
+      const $hero = document.getElementById("hero");
+      const $liveRow = document.getElementById("live-row"),
+        $liveGrid = document.getElementById("live-grid");
+      const $channelsRow = document.getElementById("channels-row"),
+        $channelsGrid = document.getElementById("channels-grid");
+      const $upcomingRow = document.getElementById("upcoming-row"),
+        $upcomingGrid = document.getElementById("upcoming-grid");
+      const $recentRow = document.getElementById("recent-row"),
+        $recentGrid = document.getElementById("recent-grid");
+      const $searchRow = document.getElementById("search-row"),
+        $searchGrid = document.getElementById("search-grid");
+      const $heroContent = document.getElementById("hero-content"),
+        $heroTitle = document.getElementById("hero-title"),
+        $heroLogo = document.getElementById("hero-logo"),
+        $heroDesc = document.getElementById("hero-desc"),
+        $heroBg = document.getElementById("hero-bg"),
+        $heroSkeleton = document.getElementById("hero-skeleton");
+      const $dynamicBg = document.getElementById("dynamic-bg");
+      const $modal = document.getElementById("player-modal"),
+        $closePlayer = document.getElementById("close-player");
+      const $serverView = document.getElementById("server-view"),
+        $playerView = document.getElementById("player-view"),
+        $video = document.getElementById("video");
+      const $searchOverlay = document.getElementById("search-overlay"),
+        $searchOverlayTitle = document.getElementById("search-overlay-title"),
+        $searchOverlayBar = document.getElementById("search-overlay-bar");
+      const $searchOverlayMsg = document.getElementById("search-overlay-msg");
+      const $searchInput = document.getElementById("search-input");
+
+      const $menuBtn = document.getElementById("menu-btn");
+      const $sideMenu = document.getElementById("side-menu");
+      const $menuBackdrop = document.getElementById("menu-backdrop");
+      const $closeMenu = document.getElementById("close-menu");
+      const $sideDisclaimerBtn = document.getElementById("side-disclaimer-btn");
+      const $notifBtn = document.getElementById("notif-btn");
+
+      const $newsList = document.getElementById("news-list");
+      const $newsSportLabel = document.getElementById("news-sport-label");
+
+      const $scoresOverlay = document.getElementById("scores-overlay");
+      const $scoresTeams = document.getElementById("scores-teams");
+      const $scoresValue = document.getElementById("scores-value");
+      const $scoresClock = document.getElementById("scores-clock");
+      const $scoresEvents = document.getElementById("scores-events");
+
+      function getStorage(key, fallback) {
+        try {
+          const raw = localStorage.getItem(key);
+          return raw !== null ? JSON.parse(raw) : fallback;
+        } catch {
+          return fallback;
+        }
+      }
+      function setStorage(key, value) {
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+        } catch { }
+      }
+
+      function hasLoadedBefore() {
+        try {
+          return localStorage.getItem(HAS_LOADED_KEY) === "1";
+        } catch {
+          return false;
+        }
+      }
+      function markAsLoaded() {
+        try {
+          localStorage.setItem(HAS_LOADED_KEY, "1");
+        } catch { }
+      }
+
+      function applyTheme(theme) {
+        if (theme && theme !== "default") {
+          document.documentElement.setAttribute("data-theme", theme);
+        } else {
+          document.documentElement.removeAttribute("data-theme");
+        }
+        document.querySelectorAll(".theme-dot").forEach((dot) => {
+          dot.classList.toggle("active", dot.dataset.theme === (theme || "default"));
+        });
+      }
+      function initTheme() {
+        const theme = getStorage(STORAGE.THEME, "default");
+        applyTheme(theme);
+        document.querySelectorAll(".theme-dot").forEach((dot) => {
+          dot.addEventListener("click", () => {
+            const t = dot.dataset.theme;
+            setStorage(STORAGE.THEME, t);
+            applyTheme(t);
+            showSnackbar(`Tema cambiado a ${t}`);
+          });
+        });
+      }
+
+      function getFavorites() {
+        return getStorage(STORAGE.FAVORITES, []);
+      }
+      function isFavorite(match) {
+        const favs = getFavorites();
+        const key = (match.title || "").toLowerCase();
+        return favs.some((f) => (f.title || "").toLowerCase() === key);
+      }
+      function toggleFavorite(match) {
+        const favs = getFavorites();
+        const key = (match.title || "").toLowerCase();
+        const idx = favs.findIndex((f) => (f.title || "").toLowerCase() === key);
+        if (idx >= 0) {
+          favs.splice(idx, 1);
+          showSnackbar("Eliminado de favoritos");
+        } else {
+          favs.push({
+            title: match.title,
+            league: match.league,
+            time: match.time,
+            match_url: match.match_url,
+            sport: currentSport,
+          });
+          showSnackbar("Agregado a favoritos");
+        }
+        setStorage(STORAGE.FAVORITES, favs);
+        document.querySelectorAll(`.fav-btn[data-fav-key="${escapeAttr(match.title)}"]`).forEach((btn) => {
+          btn.classList.toggle("is-fav", isFavorite(match));
+        });
+      }
+
+      function escapeAttr(s) {
+        return String(s || "").replace(/"/g, "&quot;");
+      }
+
+      function initNotifications() {
+        if (!("Notification" in window)) return;
+        const enabled = getStorage(STORAGE.NOTIFS, false);
+        updateNotifBtn(enabled);
+        $notifBtn.addEventListener("click", async () => {
+          if (Notification.permission === "granted") {
+            const current = getStorage(STORAGE.NOTIFS, false);
+            setStorage(STORAGE.NOTIFS, !current);
+            updateNotifBtn(!current);
+            showSnackbar(!current ? "Notificaciones activadas" : "Notificaciones desactivadas");
+          } else {
+            const perm = await Notification.requestPermission();
+            if (perm === "granted") {
+              setStorage(STORAGE.NOTIFS, true);
+              updateNotifBtn(true);
+              showSnackbar("Notificaciones activadas");
+            } else {
+              showSnackbar("Permiso de notificaciones denegado");
+            }
+          }
+        });
+      }
+      function updateNotifBtn(enabled) {
+        if (!enabled) {
+          $notifBtn.style.opacity = "0.5";
+          $notifBtn.querySelector(".badge-dot")?.remove();
+        } else {
+          $notifBtn.style.opacity = "1";
+        }
+      }
+      function checkFavoriteAlerts(matches) {
+        if (!getStorage(STORAGE.NOTIFS, false)) return;
+        if (Notification.permission !== "granted") return;
+        const favs = getFavorites();
+        if (!favs.length) return;
+        const now = Date.now();
+        const lastAlert = getStorage("tatotv_last_alert", 0);
+        if (now - lastAlert < 5 * 60 * 1000) return;
+
+        for (const m of matches) {
+          const isFav = favs.some((f) => (f.title || "").toLowerCase() === (m.title || "").toLowerCase());
+          if (isFav && m.status === "live") {
+            try {
+              new Notification("TatoTV - Partido en vivo", {
+                body: `${m.title} está en vivo ahora.`,
+              });
+              setStorage("tatotv_last_alert", now);
+            } catch { }
+            break;
+          }
+        }
+      }
+
+      document.addEventListener("click", (e) => {
+        const target = e.target.closest(".md-ripple-host");
+        if (!target) return;
+        const rect = target.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        const ripple = document.createElement("span");
+        ripple.className = "md-ripple";
+        ripple.style.width = ripple.style.height = size + "px";
+        ripple.style.left = e.clientX - rect.left - size / 2 + "px";
+        ripple.style.top = e.clientY - rect.top - size / 2 + "px";
+        target.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 600);
+      });
+
+      function showSnackbar(message, duration = 3000) {
+        const $snack = document.getElementById("snackbar");
+        $snack.textContent = message;
+        $snack.classList.add("show");
+        clearTimeout(window._snackTimer);
+        window._snackTimer = setTimeout(() => $snack.classList.remove("show"), duration);
+      }
+
+      function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, (c) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[c]);
+      }
+
+      function getFallbackImg() {
+        if (currentSport === "basketball") return FALLBACK_IMG_BASKETBALL;
+        if (currentSport === "nhl") return FALLBACK_IMG_NHL;
+        return FALLBACK_IMG_FOOTBALL;
+      }
+
+      let newsCache = { football: null, basketball: null, nhl: null };
+      async function loadNews(sport) {
+        if (!$newsList) return;
+        const label = sport === "basketball" ? "Basketball" : sport === "nhl" ? "NHL" : "Fútbol";
+        if ($newsSportLabel) $newsSportLabel.textContent = label;
+
+        if (newsCache[sport]) {
+          renderNews(newsCache[sport]);
+          return;
+        }
+
+        $newsList.innerHTML = `
+            <div class="news-skeleton"></div>
+            <div class="news-skeleton"></div>
+            <div class="news-skeleton"></div>
+          `;
+
+        try {
+          const res = await fetch(`${API}/api/news?sport=${sport}`);
+          if (!res.ok) throw new Error("fetch failed");
+          const news = await res.json();
+          newsCache[sport] = Array.isArray(news) ? news : [];
+          renderNews(newsCache[sport]);
+        } catch (e) {
+          console.error("Error cargando noticias:", e);
+          $newsList.innerHTML = `<p class="news-empty">No se pudieron cargar las noticias.</p>`;
+        }
+      }
+
+      function renderNews(news) {
+        if (!news || news.length === 0) {
+          $newsList.innerHTML = `<p class="news-empty">No hay noticias disponibles.</p>`;
+          return;
+        }
+        $newsList.innerHTML = news
+          .map(
+            (n) => `
+            <a class="news-item" href="${escapeHtml(n.link)}" target="_blank" rel="noopener noreferrer">
+              ${n.image ? `<img class="news-item-img" src="${escapeHtml(n.image)}" loading="lazy" onerror="this.remove()" alt="">` : ""}
+              <span class="news-item-source">${escapeHtml(n.source || "Noticia")}</span>
+              <span class="news-item-title">${escapeHtml(n.title)}</span>
+              ${n.description ? `<span class="news-item-desc">${escapeHtml(n.description)}</span>` : ""}
+            </a>
+          `
+          )
+          .join("");
+      }
+
+      function toggleMenu(open) {
+        $sideMenu.classList.toggle("open", open);
+        $menuBackdrop.classList.toggle("open", open);
+      }
+      $menuBtn.addEventListener("click", () => toggleMenu(true));
+      $closeMenu.addEventListener("click", () => toggleMenu(false));
+      $menuBackdrop.addEventListener("click", () => toggleMenu(false));
+
+      function setupScrollers() {
+        document.querySelectorAll(".row-wrapper").forEach((wrapper) => {
+          const prev = wrapper.querySelector(".nav-btn.prev");
+          const next = wrapper.querySelector(".nav-btn.next");
+          const scrollEl = wrapper.querySelector(".row-scroll, .channel-row");
+          if (!prev || !next || !scrollEl) return;
+
+          prev.onclick = () => scrollEl.scrollBy({ left: -scrollEl.clientWidth * 0.75, behavior: "smooth" });
+          next.onclick = () => scrollEl.scrollBy({ left: scrollEl.clientWidth * 0.75, behavior: "smooth" });
+
+          const updateArrows = () => {
+            prev.style.opacity = scrollEl.scrollLeft <= 10 ? "0" : "1";
+            next.style.opacity =
+              scrollEl.scrollLeft >= scrollEl.scrollWidth - scrollEl.clientWidth - 10 ? "0" : "1";
+          };
+          scrollEl.addEventListener("scroll", updateArrows);
+          window.addEventListener("resize", updateArrows);
+          setTimeout(updateArrows, 100);
+        });
+      }
+
+      async function loadSports() {
+        try {
+          const res = await fetch(`${API}/api/sports`);
+          if (res.ok) {
+            sportsList = await res.json();
+            renderTabs();
+            if (sportsList.length > 0 && !currentSport) {
+              const defaultSport = sportsList.find((s) => s.available) || sportsList[0];
+              selectSport(defaultSport.key);
+            }
+          }
+        } catch (e) {
+          console.error("Error conectando:", e);
+          $liveGrid.innerHTML = `<p style="padding:20px; color:#aaa;">No se pudo conectar. Revisa que el backend esté corriendo.</p>`;
+          showSnackbar("No se pudo conectar al servidor");
+        }
+      }
+
+      function renderTabs() {
+        const tabsHTML = sportsList
+          .map((s) => {
+            const isAvailable = s.available !== false;
+            const disabledClass = isAvailable ? "" : "disabled";
+            return `
+    <button class="sport-tab md-ripple-host ${s.key === currentSport ? "active" : ""} ${disabledClass}" data-sport="${s.key}">
       <svg><use href="#sport-${s.icon || s.key}"/></svg>
       ${escapeHtml(s.display_name)}
     </button>
-  `}).join("");
+  `;
+          })
+          .join("");
 
-  $sportTabs.innerHTML = tabsHTML;
-  $sideMenuTabs.innerHTML = tabsHTML;
-  
-  document.querySelectorAll('.sport-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      selectSport(btn.dataset.sport);
-      toggleMenu(false);
-    });
-  });
-}
+        $sportTabs.innerHTML = tabsHTML;
+        $sideMenuTabs.innerHTML = tabsHTML;
 
-async function selectSport(key) {
-  const meta = sportsList.find(s => s.key === key);
-  if (!meta) return;
+        document.querySelectorAll(".sport-tab").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            selectSport(btn.dataset.sport);
+            toggleMenu(false);
+          });
+        });
+      }
 
-  currentSport = key;
-  currentSportMeta = meta;
-  renderTabs();
-  $searchInput.value = "";
-  
-  if (meta.available === false) {
-    $hero.style.display = "none";
-    $contentWrapper.style.display = "none";
-    $pendingState.style.display = "flex";
-    return;
-  }
+      async function selectSport(key) {
+        const meta = sportsList.find((s) => s.key === key);
+        if (!meta) return;
 
-  $pendingState.style.display = "none";
-  $hero.style.display = "flex";
-  $contentWrapper.style.display = "block";
-  $searchRow.style.display = "none";
-  
-  showLoadingOverlay(`TatoTV está buscando ${currentSportMeta.display_name}...`);
-  
-  $heroContent.style.display = "none";
-  $heroSkeleton.style.display = "block";
-  $heroBg.classList.remove("loaded");
-  
-  $liveRow.style.display = "block"; $liveGrid.innerHTML = `<div class="skl skl-card"></div><div class="skl skl-card"></div><div class="skl skl-card"></div>`;
-  $channelsRow.style.display = "block"; $channelsGrid.innerHTML = `<div class="skl skl-circle"></div><div class="skl skl-circle"></div><div class="skl skl-circle"></div>`;
-  $upcomingRow.style.display = "block"; $upcomingGrid.innerHTML = `<div class="skl skl-card"></div><div class="skl skl-card"></div><div class="skl skl-card"></div>`;
-  $recentRow.style.display = "none";
+        currentSport = key;
+        currentSportMeta = meta;
+        renderTabs();
+        $searchInput.value = "";
 
-  // CORRECCIÓN (Bug B): AbortController con timeout de 2 min para no
-  // quedarse colgado cuando Render free está en cold start (30-90s).
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 min
+        if (meta.available === false) {
+          $hero.style.display = "none";
+          $contentWrapper.style.display = "none";
+          $pendingState.style.display = "flex";
+          return;
+        }
 
-  try {
-    const [chRes, mRes] = await Promise.all([
-      fetch(`${API}/api/channels?sport=${key}`, { signal: controller.signal }).catch(()=>null),
-      fetch(`${API}/api/matches?sport=${key}`, { signal: controller.signal }).catch(()=>null)
-    ]);
-    clearTimeout(timeoutId);
-    
-    if (chRes && chRes.ok) {
-      const chData = await chRes.json();
-      allChannels = Array.isArray(chData) ? chData : [];
-    } else { allChannels = []; }
+        $pendingState.style.display = "none";
+        $hero.style.display = "flex";
+        $contentWrapper.style.display = "block";
+        $searchRow.style.display = "none";
 
-    if (mRes && mRes.ok) {
-      const mData = await mRes.json();
-      allMatches = Array.isArray(mData) ? mData : [];
-    } else { allMatches = []; }
+        showLoadingOverlay(`TatoTV está buscando ${currentSportMeta.display_name}...`);
+        loadNews(key);
 
-    renderContent();
-  } catch (e) {
-    clearTimeout(timeoutId);
-    console.error("Error al cargar el deporte:", e);
-    $liveGrid.innerHTML = `<p style="padding:20px; color:#aaa;">El servidor tardó demasiado o no respondió. Reintenta en unos segundos.</p>`;
-    $liveRow.style.display = "block";
-  } finally {
-    hideLoadingOverlay();
-  }
-}
+        $heroContent.style.display = "none";
+        $heroSkeleton.style.display = "block";
+        $heroBg.classList.remove("loaded");
 
-// ── LÓGICA DE ROTACIÓN DEL HERO ──
-function startHeroRotation() {
-  if (heroInterval) clearInterval(heroInterval);
-  currentLiveMatches = allMatches.filter(m => m.status === 'live').slice(0, 10); // máximo 10
-  
-  if (currentLiveMatches.length === 0) {
-    const upcoming = allMatches.filter(m => m.status === 'upcoming');
-    if (upcoming.length > 0) currentLiveMatches.push(upcoming[0]);
-  }
+        $liveRow.style.display = "block";
+        $liveGrid.innerHTML = `<div class="skl skl-card"></div><div class="skl skl-card"></div><div class="skl skl-card"></div>`;
+        $channelsRow.style.display = "block";
+        $channelsGrid.innerHTML = `<div class="skl skl-circle"></div><div class="skl skl-circle"></div><div class="skl skl-circle"></div>`;
+        $upcomingRow.style.display = "block";
+        $upcomingGrid.innerHTML = `<div class="skl skl-card"></div><div class="skl skl-card"></div><div class="skl skl-card"></div>`;
+        $recentRow.style.display = "none";
 
-  if (currentLiveMatches.length === 0) {
-    updateHero(null);
-    return;
-  }
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 120000);
 
-  currentHeroIndex = 0;
-  updateHero(currentLiveMatches[0]);
+        try {
+          const [chRes, mRes] = await Promise.all([
+            fetch(`${API}/api/channels?sport=${key}`, { signal: controller.signal }).catch(() => null),
+            fetch(`${API}/api/matches?sport=${key}`, { signal: controller.signal }).catch(() => null),
+          ]);
+          clearTimeout(timeoutId);
 
-  if (currentLiveMatches.length > 1) {
-    // 8s en vez de 5s: rotación menos agresiva, sin saltos raros.
-    heroInterval = setInterval(() => {
-      currentHeroIndex = (currentHeroIndex + 1) % currentLiveMatches.length;
-      updateHero(currentLiveMatches[currentHeroIndex]);
-    }, 8000);
-  }
-}
+          if (chRes && chRes.ok) {
+            const chData = await chRes.json();
+            allChannels = Array.isArray(chData) ? chData : [];
+          } else {
+            allChannels = [];
+          }
 
-function stopHeroRotation() {
-  if (heroInterval) { clearInterval(heroInterval); heroInterval = null; }
-}
+          if (mRes && mRes.ok) {
+            const mData = await mRes.json();
+            allMatches = Array.isArray(mData) ? mData : [];
+          } else {
+            allMatches = [];
+          }
 
-function updateHero(match) {
-  if (!match) {
-    $heroSkeleton.style.display = "none";
-    $heroContent.style.display = "none";
-    $heroBg.classList.remove("loaded");
-    return;
-  }
+          renderContent();
+          checkFavoriteAlerts(allMatches);
+        } catch (e) {
+          clearTimeout(timeoutId);
+          console.error("Error al cargar el deporte:", e);
+          $liveGrid.innerHTML = `<p style="padding:20px; color:#aaa;">El servidor tardó demasiado o no respondió. Reintenta en unos segundos.</p>`;
+          $liveRow.style.display = "block";
+          showSnackbar("El servidor tardó demasiado. Reintenta.");
+        } finally {
+          const elapsed = Date.now() - (window._loadingStartedAt || 0);
+          const minDuration = hasLoadedBefore() ? 0 : FIRST_LOAD_WAIT_MS;
+          const remaining = Math.max(0, minDuration - elapsed);
+          if (remaining > 0) await new Promise((r) => setTimeout(r, remaining));
+          markAsLoaded();
+          hideLoadingOverlay();
+        }
+      }
 
-  $heroSkeleton.style.display = "none";
-  $heroContent.style.display = "flex";
-  
-  $heroTitle.textContent = match.title || match.name;
-  const isLive = match.status === 'live';
-  $heroLogo.innerHTML = isLive ? `<span class="dot"></span> EN VIVO` : `${escapeHtml(match.league || 'DESTACADO')}`;
-  
-  const metaInfo = [match.league, match.time].filter(Boolean).join(' • ');
-  $heroDesc.textContent = metaInfo || 'Transmisión en directo';
+      function startHeroRotation() {
+        if (heroInterval) clearInterval(heroInterval);
+        currentLiveMatches = allMatches.filter((m) => m.status === "live").slice(0, 10);
+        if (currentLiveMatches.length === 0) {
+          const upcoming = allMatches.filter((m) => m.status === "upcoming");
+          if (upcoming.length > 0) currentLiveMatches.push(upcoming[0]);
+        }
+        if (currentLiveMatches.length === 0) {
+          updateHero(null);
+          return;
+        }
+        currentHeroIndex = 0;
+        updateHero(currentLiveMatches[0]);
+        if (currentLiveMatches.length > 1) {
+          heroInterval = setInterval(() => {
+            currentHeroIndex = (currentHeroIndex + 1) % currentLiveMatches.length;
+            updateHero(currentLiveMatches[currentHeroIndex]);
+          }, 8000);
+        }
+      }
 
-  // Sin re-animación en cada rotación: el CSS ya hace slideUp una vez al
-  // mostrarse. Solo al cambiar de deporte se reinicia el display, lo que
-  // dispara la animación naturalmente. Esto elimina el "slide up" molesto
-  // cada 5 segundos durante la rotación del hero.
+      function stopHeroRotation() {
+        if (heroInterval) {
+          clearInterval(heroInterval);
+          heroInterval = null;
+        }
+      }
 
-  fetchThumb(match).then(url => {
-    $heroBg.src = url;
-    $heroBg.classList.add("loaded");
-    $dynamicBg.style.backgroundImage = `url('${url}')`;
-  });
-  
-  document.getElementById("hero-play-btn").onclick = () => openServerModal(match);
-}
+      function updateHero(match) {
+        if (!match) {
+          $heroSkeleton.style.display = "none";
+          $heroContent.style.display = "none";
+          $heroBg.classList.remove("loaded");
+          return;
+        }
+        $heroSkeleton.style.display = "none";
+        $heroContent.style.display = "flex";
+        $heroTitle.textContent = match.title || match.name;
+        const isLive = match.status === "live";
+        $heroLogo.innerHTML = isLive
+          ? `<span class="dot"></span> EN VIVO`
+          : `${escapeHtml(match.league || "DESTACADO")}`;
+        const metaInfo = [match.league, match.time].filter(Boolean).join(" • ");
+        $heroDesc.textContent = metaInfo || "Transmisión en directo";
+        fetchThumb(match).then((url) => {
+          $heroBg.src = url;
+          $heroBg.classList.add("loaded");
+          $dynamicBg.style.backgroundImage = `url('${url}')`;
+        });
+        document.getElementById("hero-play-btn").onclick = () => openServerModal(match);
+      }
 
-function renderContent() {
-  startHeroRotation();
+      function renderContent() {
+        startHeroRotation();
 
-  if (allChannels.length) {
-    $channelsRow.style.display = "block";
-    $channelsGrid.innerHTML = allChannels.map((ch, i) => `
-      <div class="channel-card" onclick="window.openChannel(${i})" tabindex="0">
+        if (allChannels.length) {
+          $channelsRow.style.display = "block";
+          $channelsGrid.innerHTML = allChannels
+            .map(
+              (ch, i) => `
+      <div class="channel-card md-ripple-host" onclick="window.openChannel(${i})" tabindex="0">
         <div class="channel-logo-wrap">
-          ${ch.logo ? `<img src="${ch.logo}" loading="lazy" onerror="this.remove()">` : `<span class="fallback">${escapeHtml(ch.name.substring(0,2))}</span>`}
+          ${ch.logo ? `<img src="${ch.logo}" loading="lazy" onerror="this.remove()">` : `<span class="fallback">${escapeHtml(ch.name.substring(0, 2))}</span>`}
         </div>
         <div class="channel-name">${escapeHtml(ch.name)}</div>
       </div>
-    `).join("");
-  } else { $channelsRow.style.display = "none"; }
+    `
+            )
+            .join("");
+        } else {
+          $channelsRow.style.display = "none";
+        }
 
-  const live = allMatches.filter(m => m.status === 'live');
-  if (live.length) {
-    $liveRow.style.display = "block";
-    $liveGrid.innerHTML = live.map(m => cardHTML(m)).join("");
-  } else { $liveRow.style.display = "none"; }
+        const live = allMatches.filter((m) => m.status === "live");
+        if (live.length) {
+          $liveRow.style.display = "block";
+          $liveGrid.innerHTML = live.map((m) => cardHTML(m)).join("");
+        } else {
+          $liveRow.style.display = "none";
+        }
 
-  const upcoming = allMatches.filter(m => m.status === 'upcoming');
-  if (upcoming.length) {
-    $upcomingRow.style.display = "block";
-    $upcomingGrid.innerHTML = upcoming.map(m => cardHTML(m)).join("");
-  } else { $upcomingRow.style.display = "none"; }
+        const upcoming = allMatches.filter((m) => m.status === "upcoming");
+        if (upcoming.length) {
+          $upcomingRow.style.display = "block";
+          $upcomingGrid.innerHTML = upcoming.map((m) => cardHTML(m)).join("");
+        } else {
+          $upcomingRow.style.display = "none";
+        }
 
-  const recent = allMatches.filter(m => m.status === 'recent');
-  if (recent.length) {
-    $recentRow.style.display = "block";
-    $recentGrid.innerHTML = recent.map(m => cardHTML(m)).join("");
-  } else { $recentRow.style.display = "none"; }
+        const recent = allMatches.filter((m) => m.status === "recent");
+        if (recent.length) {
+          $recentRow.style.display = "block";
+          $recentGrid.innerHTML = recent.map((m) => cardHTML(m)).join("");
+        } else {
+          $recentRow.style.display = "none";
+        }
 
-  hydrateThumbs();
-  setupScrollers();
-}
+        hydrateThumbs();
+        setupScrollers();
+      }
 
-function cardHTML(m) {
-  const isLive = m.status === 'live';
-  return `
-    <div class="match-card" onclick='window.openServerModal(${JSON.stringify(m).replace(/'/g, "&#39;")})' tabindex="0">
+      function cardHTML(m) {
+        const isLive = m.status === "live";
+        const fav = isFavorite(m);
+        const data = JSON.stringify(m).replace(/'/g, "&#39;");
+        return `
+    <div class="match-card md-ripple-host" onclick='window.openServerModal(${data})' tabindex="0">
       <div class="match-thumb">
-        <span class="badge ${isLive ? 'badge-live' : 'badge-upcoming'}">${isLive ? 'EN VIVO' : 'PRÓXIMO'}</span>
-        <img src="${FALLBACK_IMG}" data-title="${escapeHtml(m.title)}" data-league="${escapeHtml(m.league)}" class="lazy-thumb">
+        <span class="badge ${isLive ? "badge-live" : "badge-upcoming"}">${isLive ? "EN VIVO" : "PRÓXIMO"}</span>
+        <button class="fav-btn ${fav ? "is-fav" : ""}" data-fav-key="${escapeAttr(m.title)}" data-match='${data}' title="${fav ? "Quitar de favoritos" : "Agregar a favoritos"}">
+          <svg><use href="#ico-heart"/></svg>
+        </button>
+        <img src="${getFallbackImg()}" data-title="${escapeHtml(m.title)}" data-league="${escapeHtml(m.league || "")}" class="lazy-thumb">
         <div class="match-overlay"></div>
         <div class="play-hover-btn"><svg><use href="#ico-play"/></svg></div>
       </div>
       <div class="match-info">
         <div class="match-title">${escapeHtml(m.title)}</div>
         <div class="match-meta">
-          <span style="color:#fff; font-weight:700;">${m.league || 'Deporte'}</span>
-          ${m.time ? `<span>• ${m.time}</span>` : ''}
+          <span style="color:#fff; font-weight:700;">${m.league || "Deporte"}</span>
+          ${m.time ? `<span>• ${m.time}</span>` : ""}
         </div>
       </div>
     </div>
   `;
-}
+      }
 
-// ── CACHÉ DE MINIATURAS Y BÚSQUEDA INTELIGENTE ──
-async function fetchThumb(m) {
-  const key = `${m.title || m.name}||${m.league || ''}`;
-  if (thumbCache.has(key)) return thumbCache.get(key);
-  try {
-    const r = await fetch(`${API}/api/thumbnail?title=${encodeURIComponent(m.title||m.name)}&league=${encodeURIComponent(m.league||'')}`);
-    if (r.ok) { 
-      const d = await r.json(); 
-      thumbCache.set(key, d.thumbnail_url);
-      return d.thumbnail_url; 
-    }
-  } catch(e) {}
-  return FALLBACK_IMG;
-}
+      document.addEventListener("click", (e) => {
+        const btn = e.target.closest(".fav-btn");
+        if (!btn) return;
+        e.stopPropagation();
+        e.preventDefault();
+        try {
+          const match = JSON.parse(btn.dataset.match.replace(/&#39;/g, "'"));
+          toggleFavorite(match);
+        } catch { }
+      });
 
-async function hydrateThumbs() {
-  // FIX: en paralelo (Promise.all) en vez de secuencial. Con 20 partidos
-  // cargando miniaturas una por una tardaba 10-20s; ahora ~500ms.
-  const imgs = Array.from(document.querySelectorAll('.lazy-thumb:not([data-hydrated])'));
-  imgs.forEach(img => img.dataset.hydrated = "1");
-  await Promise.all(imgs.map(async (img) => {
-    const url = await fetchThumb({ title: img.dataset.title, league: img.dataset.league });
-    if (url) img.src = url;
-  }));
-}
+      async function fetchThumb(m) {
+        const sp = currentSport || "football";
+        const key = `${m.title || m.name}||${m.league || ""}||${sp}`;
+        if (thumbCache.has(key)) return thumbCache.get(key);
+        try {
+          const r = await fetch(
+            `${API}/api/thumbnail?title=${encodeURIComponent(m.title || m.name)}` +
+            `&league=${encodeURIComponent(m.league || "")}` +
+            `&sport=${encodeURIComponent(sp)}`
+          );
+          if (r.ok) {
+            const d = await r.json();
+            thumbCache.set(key, d.thumbnail_url);
+            return d.thumbnail_url;
+          }
+        } catch (e) { }
+        return getFallbackImg();
+      }
 
-// ── EVENTO DE BÚSQUEDA ──
-$searchInput.addEventListener("input", (e) => {
-  const q = e.target.value.toLowerCase().trim();
-  
-  if (!q) {
-    $searchRow.style.display = "none";
-    $liveRow.style.display = allMatches.some(m => m.status === 'live') ? "block" : "none";
-    $channelsRow.style.display = allChannels.length > 0 ? "block" : "none";
-    $upcomingRow.style.display = allMatches.some(m => m.status === 'upcoming') ? "block" : "none";
-    $recentRow.style.display = allMatches.some(m => m.status === 'recent') ? "block" : "none";
-    startHeroRotation();
-    return;
-  }
+      async function hydrateThumbs() {
+        const imgs = Array.from(document.querySelectorAll(".lazy-thumb:not([data-hydrated])"));
+        imgs.forEach((img) => (img.dataset.hydrated = "1"));
+        await Promise.all(
+          imgs.map(async (img) => {
+            const url = await fetchThumb({ title: img.dataset.title, league: img.dataset.league });
+            if (url) img.src = url;
+          })
+        );
+      }
 
-  // Filtrar
-  const filtered = allMatches.filter(m => 
-    (m.title && m.title.toLowerCase().includes(q)) || 
-    (m.league && m.league.toLowerCase().includes(q))
-  );
+      $searchInput.addEventListener("input", (e) => {
+        const q = e.target.value.toLowerCase().trim();
+        if (!q) {
+          $searchRow.style.display = "none";
+          $liveRow.style.display = allMatches.some((m) => m.status === "live") ? "block" : "none";
+          $channelsRow.style.display = allChannels.length > 0 ? "block" : "none";
+          $upcomingRow.style.display = allMatches.some((m) => m.status === "upcoming") ? "block" : "none";
+          $recentRow.style.display = allMatches.some((m) => m.status === "recent") ? "block" : "none";
+          startHeroRotation();
+          return;
+        }
+        const filtered = allMatches.filter(
+          (m) =>
+            (m.title && m.title.toLowerCase().includes(q)) ||
+            (m.league && m.league.toLowerCase().includes(q))
+        );
+        $liveRow.style.display = "none";
+        $channelsRow.style.display = "none";
+        $upcomingRow.style.display = "none";
+        $recentRow.style.display = "none";
+        $searchRow.style.display = "block";
+        if (filtered.length > 0) {
+          $searchGrid.innerHTML = filtered.map((m) => cardHTML(m)).join("");
+          hydrateThumbs();
+          stopHeroRotation();
+          updateHero(filtered[0]);
+        } else {
+          $searchGrid.innerHTML = `<p style="padding:20px; color:#aaa;">No se encontraron resultados para "${escapeHtml(q)}"</p>`;
+        }
+      });
 
-  // Ocultar otras filas
-  $liveRow.style.display = "none";
-  $channelsRow.style.display = "none";
-  $upcomingRow.style.display = "none";
-  $recentRow.style.display = "none";
-  $searchRow.style.display = "block";
+      window.openChannel = (idx) => {
+        const ch = allChannels[idx];
+        if (!ch) return;
+        if (!ch.url || String(ch.url).trim() === "") {
+          showSnackbar("Canal sin URL disponible");
+          return;
+        }
+        playStream(ch.name, ch.url, null);
+      };
 
-  if (filtered.length > 0) {
-    $searchGrid.innerHTML = filtered.map(m => cardHTML(m)).join("");
-    hydrateThumbs();
-    
-    // Actualizar Hero con el primer resultado y detener rotación
-    stopHeroRotation();
-    updateHero(filtered[0]);
-  } else {
-    $searchGrid.innerHTML = `<p style="padding:20px; color:#aaa;">No se encontraron resultados para "${escapeHtml(q)}"</p>`;
-  }
-});
+      window.openServerModal = async (m) => {
+        stopHeroRotation();
+        $modal.classList.add("open");
+        $serverView.style.display = "block";
+        $playerView.style.display = "none";
+        document.getElementById("server-title").textContent = m.title || m.name;
+        document.getElementById("server-subtitle").textContent = m.league || "";
 
-window.openChannel = (idx) => {
-  const ch = allChannels[idx];
-  playStream(ch.name, ch.url);
-};
+        const $list = document.getElementById("server-list");
+        const $tabs = document.getElementById("server-tabs");
+        $tabs.innerHTML = "";
+        $list.innerHTML = `<div style="text-align:center; padding:40px;"><div class="player-spinner"></div><p style="color:#aaa;">Buscando servidores, puede tardar hasta 30s...</p></div>`;
 
-window.openServerModal = async (m) => {
-  stopHeroRotation(); // Detener rotación al abrir modal
-  $modal.classList.add('open');
-  $serverView.style.display = 'block';
-  $playerView.style.display = 'none';
-  document.getElementById('server-title').textContent = m.title || m.name;
-  document.getElementById('server-subtitle').textContent = m.league || '';
-  
-  const $list = document.getElementById('server-list');
-  const $tabs = document.getElementById('server-tabs');
-  $tabs.innerHTML = '';
-  $list.innerHTML = `<div style="text-align:center; padding:40px;"><div style="width:36px; height:36px; border:3px solid rgba(255,255,255,0.1); border-top-color:#fff; border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 16px;"></div><p style="color:#aaa;">Buscando servidores...</p></div>`;
-  
-  try {
-    const res = await fetch(`${API}/api/servers?match_url=${encodeURIComponent(m.match_url)}&sport=${currentSport}`);
-    if (res.ok) {
-      const servers = await res.json();
-      renderServers(servers, m);
-    }
-  } catch(e) {
-    $list.innerHTML = `<p style="color:var(--accent); text-align:center;">Error al cargar servidores.</p>`;
-  }
-};
+        try {
+          const res = await fetch(
+            `${API}/api/servers?match_url=${encodeURIComponent(m.match_url)}&sport=${currentSport}`
+          );
+          if (res.ok) {
+            const servers = await res.json();
+            renderServers(servers, m);
+          } else {
+            $list.innerHTML = `<p style="color:var(--accent); text-align:center;">Error al cargar servidores.</p>`;
+          }
+        } catch (e) {
+          $list.innerHTML = `<p style="color:var(--accent); text-align:center;">Error al cargar servidores.</p>`;
+          showSnackbar("Error al cargar servidores");
+        }
+      };
 
-function renderServers(servers, match) {
-  const $tabs = document.getElementById('server-tabs');
-  const $list = document.getElementById('server-list');
-  
-  const groups = { es: [], en: [], unknown: [] };
-  servers.forEach(s => {
-    const lang = s.language === 'es' ? 'es' : s.language === 'en' ? 'en' : 'unknown';
-    groups[lang].push(s);
-  });
+      function renderServers(servers, match) {
+        const $tabs = document.getElementById("server-tabs");
+        const $list = document.getElementById("server-list");
 
-  const tabKeys = Object.keys(groups).filter(k => groups[k].length > 0);
-  
-  if (tabKeys.length === 0) {
-    $list.innerHTML = `<p style="text-align:center; color:#aaa; padding:20px;">No hay servidores disponibles.</p>`;
-    return;
-  }
+        // Solo mostrar servidores con stream_url válido.
+        // Los que devolvió Playwright pero sin captura de .m3u8 no son
+        // clickeables, así que los filtramos para evitar "clicks muertos".
+        const validServers = (servers || []).filter(
+          (s) => s && s.stream_url && String(s.stream_url).trim() !== ""
+        );
 
-  $tabs.innerHTML = tabKeys.map((k, i) => `
-    <button class="server-tab ${i===0?'active':''}" onclick="window.switchTab(this, '${k}')">
-      ${k === 'es' ? '🇪🇸 Español' : k === 'en' ? '🇬🇧 Inglés' : '❓ Desconocido'} (${groups[k].length})
+        if (validServers.length === 0) {
+          $tabs.innerHTML = "";
+          $list.innerHTML = `<p style="text-align:center; color:#aaa; padding:20px; line-height:1.6;">No se encontraron servidores disponibles para este partido.<br><small>Prueba con otro partido o espera unos segundos e intenta de nuevo.</small></p>`;
+          return;
+        }
+
+        const groups = { es: [], en: [], unknown: [] };
+        validServers.forEach((s) => {
+          const lang = s.language === "es" ? "es" : s.language === "en" ? "en" : "unknown";
+          groups[lang].push(s);
+        });
+
+        const tabKeys = Object.keys(groups).filter((k) => groups[k].length > 0);
+        if (tabKeys.length === 0) {
+          $tabs.innerHTML = "";
+          $list.innerHTML = `<p style="text-align:center; color:#aaa; padding:20px;">No se encontraron servidores disponibles.</p>`;
+          return;
+        }
+
+        const langLabel = (k) =>
+          k === "es" ? "Español" : k === "en" ? "Inglés" : "Desconocido";
+
+        $tabs.innerHTML = tabKeys
+          .map(
+            (k, i) => `
+    <button class="server-tab md-ripple-host ${i === 0 ? "active" : ""}" data-lang="${k}">
+      ${langLabel(k)} (${groups[k].length})
     </button>
-  `).join('');
+  `
+          )
+          .join("");
 
-  window.switchTab = (btn, lang) => {
-    document.querySelectorAll('.server-tab').forEach(t => t.classList.remove('active'));
-    btn.classList.add('active');
-    window.renderServerList(groups[lang], match);
-  };
-
-  window.renderServerList = (srvList, m) => {
-    $list.innerHTML = srvList.map(s => {
-      const langText = s.language === 'es' ? 'Español' : s.language === 'en' ? 'Inglés' : 'Desconocido';
-      return `
-      <button class="server-btn" onclick="window.playStream('${escapeHtml(m.title)}', '${s.stream_url}')">
+        const renderList = (langKey) => {
+          const list = groups[langKey];
+          $list.innerHTML = list
+            .map((s) => {
+              const langText = langLabel(
+                s.language === "es" ? "es" : s.language === "en" ? "en" : "unknown"
+              );
+              return `
+      <button class="server-btn md-ripple-host" data-server-idx="${list.indexOf(s)}">
         <span style="display:flex; flex-direction:column; align-items:flex-start; gap:2px;">
           <span style="font-weight:700; color:#fff; font-size:14px;">${langText}</span>
           <span style="font-weight:400; color:#888; font-size:12px;">${escapeHtml(s.name)}</span>
         </span>
         <svg width="20" height="20" fill="#fff" style="opacity:0.7;"><use href="#ico-play"/></svg>
       </button>
-    `}).join('');
-  };
-  
-  renderServerList(groups[tabKeys[0]], match);
-}
+    `;
+            })
+            .join("");
 
-window.playStream = (title, url) => {
-  $modal.classList.add('open');
-  $serverView.style.display = 'none';
-  $playerView.style.display = 'block';
-  const $loading = document.getElementById('player-loading');
-  $loading.style.display = 'block';
-  $video.style.display = 'none';
-  
-  if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
-  const proxied = `${API}/api/proxy?url=${encodeURIComponent(url)}`;
-  
-  if (window.Hls && Hls.isSupported()) {
-    hlsInstance = new Hls();
-    hlsInstance.loadSource(proxied);
-    hlsInstance.attachMedia($video);
-    hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
-      $loading.style.display = 'none';
-      $video.style.display = 'block';
-      $video.play().catch(()=>{});
-    });
-    hlsInstance.on(Hls.Events.ERROR, (e, data) => {
-      if (data.fatal) $loading.innerHTML = "<p style='color:var(--accent)'>No se encontraron servidores públicos disponibles.</p>";
-    });
-  } else {
-    $video.src = proxied;
-    $video.play();
-    $loading.style.display = 'none';
-    $video.style.display = 'block';
-  }
-};
+          $list.querySelectorAll(".server-btn").forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const idx = parseInt(btn.dataset.serverIdx, 10);
+              const srv = list[idx];
+              if (!srv || !srv.stream_url) {
+                showSnackbar("Servidor no disponible. Prueba otro.");
+                return;
+              }
+              window.playStream(match.title || match.name, srv.stream_url, match);
+            });
+          });
+        };
 
-$closePlayer.onclick = () => {
-  $modal.classList.remove('open');
-  if (hlsInstance) hlsInstance.destroy();
-  $video.pause(); $video.src = '';
-  startHeroRotation(); // Reanudar rotación al cerrar
-};
+        $tabs.querySelectorAll(".server-tab").forEach((tabBtn) => {
+          tabBtn.addEventListener("click", () => {
+            $tabs.querySelectorAll(".server-tab").forEach((t) => t.classList.remove("active"));
+            tabBtn.classList.add("active");
+            renderList(tabBtn.dataset.lang);
+          });
+        });
 
-function showLoadingOverlay(title) {
-  $searchOverlay.classList.add('active');
-  $searchOverlayTitle.textContent = title;
-  $searchOverlayBar.style.width = '0%';
-  setTimeout(() => $searchOverlayBar.style.width = '80%', 100);
-}
-function hideLoadingOverlay() {
-  $searchOverlayBar.style.width = '100%';
-  setTimeout(() => {
-    $searchOverlay.classList.remove('active');
-    $searchOverlayBar.style.width = '0%';
-  }, 400);
-}
+        renderList(tabKeys[0]);
+      }
 
-document.getElementById('disclaimer-btn').onclick = () => document.getElementById('disclaimer-modal').classList.add('open');
-$sideDisclaimerBtn.onclick = () => {
-  document.getElementById('disclaimer-modal').classList.add('open');
-  toggleMenu(false);
-};
-document.getElementById('close-disclaimer').onclick = () => document.getElementById('disclaimer-modal').classList.remove('open');
+      function resetPlayerLoading() {
+        const $loading = document.getElementById("player-loading");
+        $loading.innerHTML = `
+    <div class="player-spinner"></div>
+    <div class="player-loading-text">Conectando al servidor...</div>
+  `;
+      }
 
-loadSports();
-})();
-</script>
+      window.playStream = (title, url, match) => {
+        if (!url || String(url).trim() === "") {
+          showSnackbar("URL de stream no disponible");
+          return;
+        }
+        $modal.classList.add("open");
+        document.getElementById("server-title").textContent = title || "Reproduciendo...";
+        document.getElementById("server-subtitle").textContent = "";
+
+        $serverView.style.display = "none";
+        $playerView.style.display = "block";
+
+        resetPlayerLoading();
+        $scoresOverlay.classList.add("hidden");
+
+        const $loading = document.getElementById("player-loading");
+        $loading.style.display = "block";
+        $video.style.display = "none";
+
+        if (hlsInstance) {
+          hlsInstance.destroy();
+          hlsInstance = null;
+        }
+        const proxied = `${API}/api/proxy?url=${encodeURIComponent(url)}`;
+
+        if (window.Hls && Hls.isSupported()) {
+          hlsInstance = new Hls();
+          hlsInstance.loadSource(proxied);
+          hlsInstance.attachMedia($video);
+
+          const savedQuality = getStorage(STORAGE.QUALITY, -1);
+          hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+            try {
+              hlsInstance.currentLevel = savedQuality;
+            } catch { }
+            $loading.style.display = "none";
+            $video.style.display = "block";
+            $video.play().catch(() => { });
+          });
+          hlsInstance.on(Hls.Events.ERROR, (e, data) => {
+            if (data.fatal) {
+              $loading.innerHTML = "<p style='color:var(--accent); padding:20px; text-align:center;'>No se encontraron servidores públicos disponibles.</p>";
+              showSnackbar("No se pudo reproducir. Prueba otro canal o servidor.");
+            }
+          });
+        } else {
+          $video.src = proxied;
+          $video.play().catch(() => { });
+          $loading.style.display = "none";
+          $video.style.display = "block";
+        }
+
+        if (match) {
+          startScoresPolling(match);
+        }
+      };
+
+      function stopScoresPolling() {
+        if (scoresInterval) {
+          clearInterval(scoresInterval);
+          scoresInterval = null;
+        }
+        currentMatchForScores = null;
+        $scoresOverlay.classList.add("hidden");
+      }
+
+      function startScoresPolling(match) {
+        stopScoresPolling();
+        if (!match || !match.title) return;
+        const parts = splitMatchTitle(match.title);
+        if (!parts.home || !parts.away) return;
+
+        currentMatchForScores = { home: parts.home, away: parts.away, sport: currentSport };
+        fetchAndRenderScores();
+        scoresInterval = setInterval(fetchAndRenderScores, 30000);
+      }
+
+      function splitMatchTitle(title) {
+        const t = (title || "").trim();
+        let clean = t;
+        if (t.includes(":")) {
+          const head = t.split(":", 1)[0];
+          if (head.length < 40) clean = t.split(":", 2)[1].trim();
+        }
+        for (const sep of [" vs. ", " vs ", " v ", " @ ", " - ", " – ", " x "]) {
+          if (clean.toLowerCase().includes(sep.toLowerCase())) {
+            const parts = clean.split(new RegExp(sep.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
+            if (parts.length >= 2) {
+              return { home: parts[0].trim(), away: parts[1].trim() };
+            }
+          }
+        }
+        return { home: clean, away: "" };
+      }
+
+      async function fetchAndRenderScores() {
+        if (!currentMatchForScores) return;
+        const { home, away, sport } = currentMatchForScores;
+        try {
+          const res = await fetch(
+            `${API}/api/scores?home=${encodeURIComponent(home)}&away=${encodeURIComponent(away)}&sport=${encodeURIComponent(sport)}`
+          );
+          if (!res.ok) return;
+          const data = await res.json();
+          if (!data.available || data.state === "pre") {
+            $scoresOverlay.classList.add("hidden");
+            return;
+          }
+          $scoresOverlay.classList.remove("hidden");
+          $scoresTeams.textContent = `${home} vs ${away}`;
+          $scoresValue.textContent = data.score || "0 - 0";
+          const clock = data.clock || "";
+          const period = data.period || "";
+          $scoresClock.textContent =
+            [period && `P${period}`, clock && clock].filter(Boolean).join(" - ") ||
+            (data.state === "post" ? "FINAL" : "EN VIVO");
+
+          if (data.events && data.events.length) {
+            $scoresEvents.innerHTML = data.events
+              .slice(0, 5)
+              .map(
+                (ev) =>
+                  `<div class="scores-event"><span class="minute">${escapeHtml(ev.minute || "")}</span><span>${escapeHtml(ev.player || "")}</span></div>`
+              )
+              .join("");
+          } else {
+            $scoresEvents.innerHTML = "";
+          }
+        } catch { }
+      }
+
+      document.querySelectorAll(".quality-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".quality-btn").forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          const level = parseInt(btn.dataset.quality, 10);
+          setStorage(STORAGE.QUALITY, level);
+          if (hlsInstance) {
+            try {
+              hlsInstance.currentLevel = level;
+            } catch { }
+          }
+        });
+      });
+
+      function initQualityButtons() {
+        const saved = getStorage(STORAGE.QUALITY, -1);
+        document.querySelectorAll(".quality-btn").forEach((b) => {
+          b.classList.toggle("active", parseInt(b.dataset.quality, 10) === saved);
+        });
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (!["localhost", "127.0.0.1"].includes(window.location.hostname)) return;
+        const modalOpen = $modal.classList.contains("open");
+        const target = e.target;
+        const inInput = target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA");
+        if (inInput) return;
+
+        if (e.key === "Escape") {
+          if (modalOpen) $closePlayer.click();
+          return;
+        }
+
+        if (!modalOpen || !$video) return;
+
+        switch (e.key) {
+          case " ":
+          case "Spacebar":
+            e.preventDefault();
+            if ($video.paused) $video.play().catch(() => { });
+            else $video.pause();
+            break;
+          case "f":
+          case "F":
+            e.preventDefault();
+            if (!document.fullscreenElement) $video.requestFullscreen?.().catch(() => { });
+            else document.exitFullscreen?.().catch(() => { });
+            break;
+          case "m":
+          case "M":
+            $video.muted = !$video.muted;
+            break;
+          case "ArrowRight":
+            e.preventDefault();
+            $video.currentTime = Math.min($video.duration || 0, $video.currentTime + 10);
+            break;
+          case "ArrowLeft":
+            e.preventDefault();
+            $video.currentTime = Math.max(0, $video.currentTime - 10);
+            break;
+          case "ArrowUp":
+            e.preventDefault();
+            $video.volume = Math.min(1, $video.volume + 0.1);
+            break;
+          case "ArrowDown":
+            e.preventDefault();
+            $video.volume = Math.max(0, $video.volume - 0.1);
+            break;
+        }
+      });
+
+      $closePlayer.onclick = () => {
+        $modal.classList.remove("open");
+        if (hlsInstance) hlsInstance.destroy();
+        $video.pause();
+        $video.src = "";
+        stopScoresPolling();
+        startHeroRotation();
+      };
+
+      function showLoadingOverlay(title) {
+        $searchOverlay.classList.add("active");
+        $searchOverlayTitle.textContent = title;
+        $searchOverlayBar.style.width = "0%";
+        $searchOverlayBar.style.transition = "width 30s linear";
+        window._loadingStartedAt = Date.now();
+
+        loadingStagesIndex = 0;
+        if ($searchOverlayMsg) {
+          $searchOverlayMsg.textContent = LOADING_STAGES[0];
+        }
+
+        if (loadingStagesInterval) clearInterval(loadingStagesInterval);
+        loadingStagesInterval = setInterval(() => {
+          loadingStagesIndex++;
+          if ($searchOverlayMsg) {
+            $searchOverlayMsg.textContent = LOADING_STAGES[loadingStagesIndex % LOADING_STAGES.length];
+          }
+        }, 1000);
+
+        requestAnimationFrame(() => {
+          $searchOverlayBar.style.width = "100%";
+        });
+      }
+
+      function hideLoadingOverlay() {
+        if (loadingStagesInterval) {
+          clearInterval(loadingStagesInterval);
+          loadingStagesInterval = null;
+        }
+        $searchOverlayBar.style.transition = "width 0.3s";
+        $searchOverlayBar.style.width = "100%";
+        setTimeout(() => {
+          $searchOverlay.classList.remove("active");
+          $searchOverlayBar.style.width = "0%";
+        }, 300);
+      }
+
+      document.getElementById("disclaimer-btn").onclick = () =>
+        document.getElementById("disclaimer-modal").classList.add("open");
+      $sideDisclaimerBtn.onclick = () => {
+        document.getElementById("disclaimer-modal").classList.add("open");
+        toggleMenu(false);
+      };
+      document.getElementById("close-disclaimer").onclick = () =>
+        document.getElementById("disclaimer-modal").classList.remove("open");
+
+      initTheme();
+      initNotifications();
+      initQualityButtons();
+      loadSports();
+    })();
+  </script>
 </body>
+
 </html>

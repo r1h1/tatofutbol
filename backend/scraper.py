@@ -1,6 +1,6 @@
 # backend/scraper.py
 from __future__ import annotations
-import asyncio, os, re
+import asyncio, os, re, time
 from typing import Dict, List, Optional, Tuple
 from urllib.parse import urljoin
 import httpx
@@ -26,40 +26,184 @@ MLB_TEAMS = {"diamondbacks","braves","orioles","red sox","cubs","white sox","red
 MATCH_SEPARATOR_RE = re.compile(r"\s+(?:vs\.?|v\.?|@|-|–|—|x)\s+", re.IGNORECASE)
 TIME_RE = re.compile(r"^\s*\d{1,2}:\d{2}\s*$")
 
+# ── Palabras que identifican basketball ──
+# CAMBIO: añadido "ncaa football" a pedido del usuario. Los partidos
+# universitarios que no sean soccer se clasifican como basketball
+# (el usuario lo pidió así para los femeninos de NCAA).
+BASKETBALL_KEYWORDS = (
+    "nba", "wnba",
+    "euroleague", "eurobasket",
+    "march madness",
+    "basketball", "baloncesto",
+    "ncaa women's", "ncaa men's",
+    "ncaa womens", "ncaa mens",
+    "ncaa basketball",
+    "ncaa football",
+)
 
-async def get_match_list(sport_key: str = "football") -> List[Dict]:
+# ── Palabras que identifican NHL (hockey) ──
+NHL_KEYWORDS = (
+    "nhl",
+    "stanley cup",
+    "nhl network",
+)
+
+# ── Cachés de resultados crudos por deporte ──
+_FOOTBALL_CACHE: Dict = {"data": [], "ts": 0.0}
+_BASKETBALL_CACHE: Dict = {"data": [], "ts": 0.0}
+_SOURCE_CACHE_TTL = 120
+
+
+def _classify_sport(title: str) -> str:
+    """
+    Clasifica un partido por su título.
+
+    Orden de comprobación:
+      1. Si contiene "soccer" -> football (excepción explícita,
+         para que "NCAA Women's Soccer" no acabe en basketball).
+      2. Si contiene NHL_KEYWORDS -> nhl.
+      3. Si contiene BASKETBALL_KEYWORDS -> basketball.
+      4. Caso contrario -> football.
+    """
+    text = (title or "").lower()
+
+    if "soccer" in text:
+        return "football"
+
+    for kw in NHL_KEYWORDS:
+        if re.search(r"\b" + re.escape(kw) + r"\b", text):
+            return "nhl"
+
+    for kw in BASKETBALL_KEYWORDS:
+        if any(c in kw for c in (" ", "'", "-")):
+            if kw in text:
+                return "basketball"
+        else:
+            if re.search(r"\b" + re.escape(kw) + r"\b", text):
+                return "basketball"
+
+    return "football"
+
+
+async def _scrape_sport_sources(sport_key: str) -> List[Dict]:
     sources = get_sources(sport_key)
     if not sources:
         print(f"[SCRAPER:{sport_key}] Sin fuentes configuradas.")
         return []
+
     tasks = []
     for src in sources:
         name = src["name"]
         if src.get("source_type") == "custom":
             tasks.append(_roja_get_matches(sport_key, src))
         else:
-            tasks.append(_generic_site_scraper(agenda_url=src["agenda_url"], base_url=src["base_url"], source_name=name, min_title_len=src.get("min_title_len",5), sport_key=sport_key))
+            tasks.append(_generic_site_scraper(
+                agenda_url=src["agenda_url"],
+                base_url=src["base_url"],
+                source_name=name,
+                min_title_len=src.get("min_title_len", 5),
+                sport_key=sport_key,
+            ))
+
     results = await asyncio.gather(*tasks, return_exceptions=True)
+
     matches = []
-    # CAMBIO: loguear explícitamente qué fuente falló y con qué excepción.
-    # Antes return_exceptions=True convertía los errores en objetos Exception
-    # que se ignoraban silenciosamente, haciendo imposible diagnosticar
-    # problemas como "Executable doesn't exist" de Playwright.
     for i, r in enumerate(results):
         if isinstance(r, list):
             matches.extend(r)
         else:
             src_name = sources[i]["name"] if i < len(sources) else f"fuente_{i}"
             print(f"[SCRAPER:{sport_key}:{src_name}] FALLÓ: {r!r}")
-    seen = set(); unique = []
+
+    return matches
+
+
+async def _get_football_raw() -> List[Dict]:
+    now = time.time()
+    if _FOOTBALL_CACHE["data"] and (now - _FOOTBALL_CACHE["ts"] < _SOURCE_CACHE_TTL):
+        print(f"[SCRAPER:football] Cache HIT ({len(_FOOTBALL_CACHE['data'])} crudos)")
+        return _FOOTBALL_CACHE["data"]
+    data = await _scrape_sport_sources("football")
+    if data:
+        _FOOTBALL_CACHE["data"] = data
+        _FOOTBALL_CACHE["ts"] = now
+    return data
+
+
+async def _get_basketball_raw() -> List[Dict]:
+    now = time.time()
+    if _BASKETBALL_CACHE["data"] and (now - _BASKETBALL_CACHE["ts"] < _SOURCE_CACHE_TTL):
+        print(f"[SCRAPER:basketball] Cache HIT ({len(_BASKETBALL_CACHE['data'])} crudos)")
+        return _BASKETBALL_CACHE["data"]
+    data = await _scrape_sport_sources("basketball")
+    if data:
+        _BASKETBALL_CACHE["data"] = data
+        _BASKETBALL_CACHE["ts"] = now
+    return data
+
+
+async def get_match_list(sport_key: str = "football") -> List[Dict]:
+    """
+    Lista de partidos YA clasificada para el deporte solicitado.
+
+    - football:    fuentes de fútbol, solo los que clasifican como football.
+    - basketball:  fuentes de basketball + fútbol, solo basketball.
+    - nhl:         fuentes de fútbol, solo los que clasifican como nhl.
+    - otros:       solo sus propias fuentes.
+    """
+    sport_key = (sport_key or "football").strip().lower()
+
+    if sport_key == "nhl":
+        # NHL aparece mezclado en fuentes de fútbol
+        raw = await _get_football_raw()
+    elif sport_key == "basketball":
+        fb_raw, bb_raw = await asyncio.gather(
+            _get_football_raw(),
+            _get_basketball_raw(),
+        )
+        raw = list(bb_raw) + list(fb_raw)
+        print(f"[SCRAPER:basketball] Fuentes crudas: {len(bb_raw)} (basketball) + {len(fb_raw)} (football)")
+    elif sport_key == "football":
+        raw = await _get_football_raw()
+    else:
+        raw = await _scrape_sport_sources(sport_key)
+
+    seen = set()
+    unique = []
+    for m in raw:
+        key = (m.get("title", "").lower(), m.get("time", ""))
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(m)
+
+    matches: List[Dict] = []
+    excluded = 0
+    for m in unique:
+        classified = _classify_sport(m.get("title", ""))
+        if sport_key == "basketball":
+            if classified == "basketball":
+                matches.append(m)
+            else:
+                excluded += 1
+        elif sport_key == "nhl":
+            if classified == "nhl":
+                matches.append(m)
+            else:
+                excluded += 1
+        else:
+            # football (y cualquier otro): solo lo que sea football
+            if classified == "football":
+                matches.append(m)
+            else:
+                excluded += 1
+
+    await _add_scores_and_events_to_matches(matches, sport_key)
     for m in matches:
-        key = (m.get("title","").lower(), m.get("time",""))
-        if key in seen: continue
-        seen.add(key); unique.append(m)
-    await _add_scores_and_events_to_matches(unique, sport_key)
-    for m in unique: m.setdefault("sport", sport_key)
-    print(f"[SCRAPER:{sport_key}] Total: {len(unique)} partidos (de {len(sources)} fuentes).")
-    return unique
+        m.setdefault("sport", sport_key)
+
+    print(f"[SCRAPER:{sport_key}] Total: {len(matches)} partidos (excluidos {excluded} por clasificación).")
+    return matches
 
 
 def _is_navigation_junk(text: str) -> bool:
@@ -194,9 +338,6 @@ async def _roja_get_matches(sport_key: str = "football", src_cfg: Optional[Dict]
             await page.goto(agenda_url, wait_until="domcontentloaded", timeout=45000)
             await page.wait_for_timeout(4000)
         except Exception as e:
-            # CAMBIO: antes este except silenciaba el error. Ahora lo logueamos
-            # para que sea visible en el log de Render si el sitio bloquea,
-            # timeout, o Chromium falla al arrancar.
             print(f"[SCRAPER:{sport_key}:roja] goto FALLÓ: {str(e)[:150]}")
             await browser.close(); return []
         items = await page.query_selector_all("#menu li.toggle-submenu")
@@ -307,7 +448,7 @@ async def _resolve_one_server(context, name, embed_url) -> Dict:
         if page: await page.close()
         return base
     if not captured:
-        base["reason"] = "no se capturó .m3u8"; 
+        base["reason"] = "no se capturó .m3u8"
         if page: await page.close()
         return base
     base["stream_url"] = captured[0]
