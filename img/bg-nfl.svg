@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+<defs>
+<radialGradient id="g" cx="22%" cy="30%" r="75%"><stop offset="0" stop-color="#7bd88f" stop-opacity=".34"/><stop offset=".45" stop-color="#15402a" stop-opacity=".55"/><stop offset="1" stop-color="#07140d"/></radialGradient>
+<pattern id="d" width="9" height="9" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.3" fill="#fff" fill-opacity=".10"/></pattern>
+<linearGradient id="f" x1="0" x2="1"><stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset=".7" stop-color="#000" stop-opacity=".25"/><stop offset="1" stop-color="#000" stop-opacity=".6"/></linearGradient>
+</defs>
+<rect width="1600" height="900" fill="#07140d"/>
+<rect width="1600" height="900" fill="url(#g)"/>
+<rect width="1600" height="900" fill="url(#d)"/>
+<g transform="translate(-60 120) rotate(-9 800 450) scale(1.75)" opacity=".9"><g fill="none" stroke="#7bd88f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="40" y="60" width="920" height="440" rx="8"/><path d="M130 60V500M220 60V500M310 60V500M400 60V500M500 60V500M600 60V500M690 60V500M780 60V500M870 60V500"/><path d="M130 190h18M130 370h18M870 190h-18M870 370h-18M500 60l0 0"/><path d="M40 280H10M960 280h30M10 250v60M990 250v60"/></g></g>
+<g transform="translate(-60 120) rotate(-9 800 450) scale(1.75)" opacity=".16"><g fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><rect x="40" y="60" width="920" height="440" rx="8"/><path d="M130 60V500M220 60V500M310 60V500M400 60V500M500 60V500M600 60V500M690 60V500M780 60V500M870 60V500"/><path d="M130 190h18M130 370h18M870 190h-18M870 370h-18M500 60l0 0"/><path d="M40 280H10M960 280h30M10 250v60M990 250v60"/></g></g>
+<rect width="1600" height="900" fill="url(#f)"/>
+</svg>

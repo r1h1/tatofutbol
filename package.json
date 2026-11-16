@@ -1,0 +1,17 @@
+{
+  "name": "tatotv",
+  "version": "3.0.0",
+  "private": true,
+  "type": "module",
+  "description": "TatoTV: agenda deportiva en vivo. Frontend est\u00e1tico + funciones Edge sin dependencias.",
+  "scripts": {
+    "dev": "node tools/dev.mjs",
+    "art": "node tools/gen-art.mjs",
+    "test": "node tools/test.mjs && node tools/compat.test.mjs",
+    "package": "node tools/package.mjs",
+    "channels": "node tools/build-channels.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}

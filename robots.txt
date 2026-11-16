@@ -1,0 +1,24 @@
+# TatoTV · robots.txt
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /404.html
+Disallow: /500.html
+Disallow: /offline.html
+Disallow: /sw.js
+
+# Rastreadores de IA: pueden leer el sitio y el resumen en /llms.txt
+User-agent: GPTBot
+Allow: /
+User-agent: ClaudeBot
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+User-agent: Google-Extended
+Allow: /
+User-agent: OAI-SearchBot
+Allow: /
+User-agent: Applebot-Extended
+Allow: /
+
+Sitemap: https://tatotv.vercel.app/sitemap.xml

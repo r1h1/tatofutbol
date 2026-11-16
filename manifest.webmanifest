@@ -1,0 +1,215 @@
+{
+  "name": "TatoTV — Deportes en vivo",
+  "short_name": "TatoTV",
+  "description": "Agenda deportiva en vivo, gratuita y de código abierto: fútbol, basketball y hockey con marcadores, noticias y reproductor integrado. Sin cuentas y sin rastreadores propios.",
+  "lang": "es",
+  "id": "./",
+  "start_url": "./?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui",
+    "browser"
+  ],
+  "orientation": "any",
+  "prefer_related_applications": false,
+  "background_color": "#fd7002",
+  "theme_color": "#0d0e10",
+  "categories": [
+    "sports",
+    "entertainment",
+    "news"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-48.png",
+      "sizes": "48x48",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-256.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Fútbol",
+      "short_name": "Fútbol",
+      "description": "Partidos de fútbol de hoy",
+      "url": "./?sport=football&source=shortcut",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Basketball",
+      "short_name": "Basket",
+      "description": "Partidos de NBA",
+      "url": "./?sport=basketball&source=shortcut",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Fórmula 1",
+      "short_name": "F1",
+      "description": "Sesiones y carreras de F1",
+      "url": "./?sport=f1&source=shortcut",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Tenis",
+      "short_name": "Tenis",
+      "description": "Partidos de tenis ATP y WTA",
+      "url": "./?sport=tennis&source=shortcut",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "En vivo ahora",
+      "short_name": "En vivo",
+      "description": "Solo lo que se está jugando",
+      "url": "./?mode=live&source=shortcut",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Noticias",
+      "short_name": "Noticias",
+      "description": "Titulares de la semana",
+      "url": "./?mode=news&source=shortcut",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "dir": "ltr",
+  "launch_handler": {
+    "client_mode": [
+      "focus-existing",
+      "auto"
+    ]
+  },
+  "screenshots": [
+    {
+      "src": "screenshots/wide-1.png",
+      "sizes": "960x540",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Agenda de fútbol del día"
+    },
+    {
+      "src": "screenshots/wide-2.png",
+      "sizes": "960x540",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Hockey con marcadores en vivo"
+    },
+    {
+      "src": "screenshots/narrow-1.png",
+      "sizes": "405x720",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Vista móvil"
+    },
+    {
+      "src": "screenshots/narrow-2.png",
+      "sizes": "405x720",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Noticias recientes"
+    }
+  ]
+}

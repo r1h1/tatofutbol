@@ -1,73 +1,13 @@
-# ============================================================
-# Python
-# ============================================================
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-venv/
-.venv/
-env/
-ENV/
-build/
-dist/
-*.egg-info/
-.pytest_cache/
-
-# ============================================================
-# Node (por si añades tests o build en el futuro)
-# ============================================================
 node_modules/
-package-lock.json
-yarn.lock
-
-# ============================================================
-# Logs (locales, no se suben)
-# ============================================================
-*.log
-backend.log
-frontend.log
-
-# ============================================================
-# Entorno (secretos locales)
-# ============================================================
+dist/
+.vercel/
 .env
 .env.*
-!.env.example
-
-# ============================================================
-# IDE / SO
-# ============================================================
-.vscode/
-.idea/
-*.swp
-*.swo
+*.log
 .DS_Store
 Thumbs.db
-desktop.ini
-
-# ============================================================
-# Playwright
-# ============================================================
-playwright-report/
-test-results/
-.playwright/
-
-# ============================================================
-# Netlify / Vercel (caches locales)
-# ============================================================
-.netlify/
-.vercel/
-
-# ============================================================
-# IMPORTANTE: estos SÍ deben subirse (no ignorar)
-# ============================================================
-# - backend/           → código fuente del backend
-# - frontend/          → frontend estático (index.html, manifest, sw.js, offline.html)
-# - Dockerfile         → para Render
-# - render.yaml        → para Render
-# - netlify.toml       → para Netlify
-# - requirements.txt   → para pip
-# - run.sh             → para desarrollo local
-# - .env.example       → documentación de variables
+.vscode/
+.idea/
+# entorno Python de la versión anterior (ya no se usa)
+venv/
+__pycache__/
