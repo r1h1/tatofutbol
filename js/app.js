@@ -228,7 +228,7 @@
   }
 
   /* ── datos de la agenda ── */
-  function load(force) {
+  function load(force, wait) {   // wait: esperar datos frescos (no enseñar una copia vencida) — al entrar y al cambiar de deporte/día/modo
     var sport = S.sport, day = S.day;   // (no toca reqId: ese contador es solo de canales y noticias)
     function apply(d) { // fusiona la ventana recibida (sin duplicados) con lo que ya hay de este deporte
       if (sport !== S.sport) return;
@@ -245,12 +245,17 @@
     }
     S.loading = true;
     if (!S.matches.length && (S.mode === "events" || S.mode === "live")) skeleton();
-    return D.schedule(sport, day, { force: force, onFresh: apply }).then(apply, function () {
-      if (sport !== S.sport) return;
-      S.loading = false; hideSplash();
-      if (S.matches.length) U.toast("Sin conexión: mostrando datos guardados");
-      else { U.$("list").innerHTML = emptyHTML("No se pudo cargar la agenda", "Revisa tu conexión; reintentaremos automáticamente."); U.$("list").setAttribute("aria-busy", "false"); }
-    });
+    // si falla (arranque en frío del servidor, red intermitente) se reintenta sola 3 veces antes de mostrar el aviso
+    function attempt(n) {
+      return D.schedule(sport, day, { force: force || n > 0, wait: wait, onFresh: apply }).then(apply, function () {
+        if (sport !== S.sport || day !== S.day) return;
+        if (n < 3) return new Promise(function (r) { setTimeout(r, 1200 * (n + 1)); }).then(function () { return attempt(n + 1); });
+        S.loading = false; hideSplash();
+        if (S.matches.length) U.toast("Sin conexión: mostrando datos guardados");
+        else { U.$("list").innerHTML = emptyHTML("No se pudo cargar la agenda", "Reintentando automáticamente…"); U.$("list").setAttribute("aria-busy", "false"); setTimeout(function () { if (!S.matches.length && !document.hidden) load(true); }, 4000); }
+      });
+    }
+    return attempt(0);
   }
   /** «Actualizado 12:04:31»: hora del dato que se está viendo (la que fijó el servidor), no la del reloj del teléfono. */
   function stamp(iso) {
@@ -301,11 +306,11 @@
     S.sport = s; S.matches = []; S.q = ""; S.sig = ""; S.rendered = ""; U.$("q").value = "";
     S.day = U.ymd(new Date()); S.today = S.day;   // cada deporte empieza en HOY (antes arrastraba el día elegido en el anterior)
     U.store.set("sport", s); closeMenu(); render();
-    if (S.mode === "events" || S.mode === "live") load();
+    if (S.mode === "events" || S.mode === "live") load(false, true);
     try { history.replaceState(null, "", location.pathname); } catch (e) { /* nada */ }
   }
-  function setMode(m) { S.mode = m; S.rendered = ""; render(); if (m === "events" || m === "live") load(); }
-  function setDay(d) { S.day = d; S.rendered = ""; renderDays(); renderEvents(); S.rendered = S.day + S.mode + S.q; load(); }
+  function setMode(m) { S.mode = m; S.rendered = ""; render(); if (m === "events" || m === "live") load(false, true); }
+  function setDay(d) { S.day = d; S.rendered = ""; renderDays(); renderEvents(); S.rendered = S.day + S.mode + S.q; load(false, true); }
   function closeMenu() { U.$("sport-menu").hidden = true; U.$("sport-btn").setAttribute("aria-expanded", "false"); }
 
   function bind() {
@@ -373,7 +378,7 @@
     function wake() {
       if (document.hidden) return;
       rollDay();
-      if (S.mode === "events" || S.mode === "live") load(false);
+      if (S.mode === "events" || S.mode === "live") load(false, true);
       else if (S.mode === "news" && Date.now() - D.age("api/news?sport=" + S.sport) > 20 * 6e4) renderNews(false);
       schedule();
     }
@@ -475,7 +480,7 @@
     var md = /[?&]mode=(events|live|channels|news)/.exec(location.search); if (md) S.mode = md[1];
     var qq = /[?&]q=([^&]+)/.exec(location.search); if (qq) { try { S.q = decodeURIComponent(qq[1].replace(/\+/g, " ")); U.$("q").value = S.q; } catch (e) { /* nada */ } }
     if (w.Legal) { Legal.mount(); Legal.afterAccept = function () { if (A.pendingMatch) { var m = A.pendingMatch; A.pendingMatch = null; P.openMatch(m); } }; }
-    P.init(); bind(); render(); if (S.mode === "events" || S.mode === "live") load(); poll(); registerSW(); setupInstall();
+    P.init(); bind(); render(); if (S.mode === "events" || S.mode === "live") load(false, true); poll(); registerSW(); setupInstall();
   };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", A.init); else A.init();
 })(window);

@@ -157,8 +157,8 @@
   Lg.mount = function () {
     var main = el("main");
     if (main && !main.querySelector(".tc-footer")) main.insertAdjacentHTML("beforeend", '<footer class="tc-footer"><button type="button" class="btn-w sm" data-lg-open="1">Aviso legal y descargo de responsabilidad</button><span>TatoTV no aloja ni transmite contenido: organiza enlaces públicos de terceros. Proyecto gratuito y de código abierto.</span></footer>');
-    var hint = el("p-hint");
-    if (hint && !document.querySelector(".player-notice")) hint.insertAdjacentHTML("afterend", '<aside class="player-notice" role="note">' + U.esc(DISCLAIMER_PLAYER) + "</aside>");
+    var body = document.querySelector("#player .p-body");   // el aviso va AL FINAL del reproductor (después de las señales)
+    if (body && !document.querySelector(".player-notice")) body.insertAdjacentHTML("afterend", '<aside class="player-notice" role="note">' + U.esc(DISCLAIMER_PLAYER) + "</aside>");
     document.addEventListener("click", function (e) {
       var t = e.target; if (!t.closest) return;
       if (t.closest("[data-lg-open]")) { Lg.open(); return; }

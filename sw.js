@@ -113,8 +113,8 @@ self.addEventListener("fetch", function (e) {
   if (url.hostname === "iptv-org.github.io") { e.respondWith(apiSWR(req, url, { fresh: 6 * 3600e3, max: 3 * 86400e3 })); return; }
 
   if (url.origin === self.location.origin) {
-    if (url.pathname === "/build.json" || /\/api\/(hls|resolve)/.test(url.pathname)) return;   // build.json: siempre de la red (es la «señal» de versión nueva)
-    if (/\/api\/(schedule|news|channels)/.test(url.pathname)) { e.respondWith(apiSWR(req, url)); return; }
+    if (url.pathname === "/build.json" || /\/api\/(hls|resolve|schedule)/.test(url.pathname)) return;   // la agenda es siempre en vivo: va directo a la red (sin caché ni plazo del Service Worker)   // build.json: siempre de la red (es la «señal» de versión nueva)
+    if (/\/api\/(news|channels)/.test(url.pathname)) { e.respondWith(apiSWR(req, url)); return; }
     if (url.pathname.indexOf("/api/") >= 0) return;
 
     if (req.mode === "navigate") {

@@ -22,13 +22,19 @@
     if (hit && !opts.force && now - hit.t < ttl) return Promise.resolve(hit.d);
     // force = «actualizar ya»: se salta la caché del navegador, del Service Worker y del CDN (parámetro único + no-store)
     var furl = opts.force ? url + (url.indexOf("?") < 0 ? "?" : "&") + "_=" + now : url, ik = opts.force ? furl : url;
-    var req = inflight[ik] || (inflight[ik] = fetch(furl, { headers: { accept: "application/json" }, cache: opts.force ? "no-store" : "default" }).then(function (r) {
+    var req = inflight[ik] || (inflight[ik] = fetch(furl, { headers: { accept: "application/json" }, cache: opts.force || opts.live ? "no-store" : "default" }).then(function (r) {
       if (!r.ok) throw new Error("http " + r.status);
       return r.json();
     }).then(function (d) {
       var e = { t: Date.now(), d: d }; mem[url] = e; U.session.set(key, e); U.store.set(key, e); U.store.trim("c:", 16);
       delete inflight[ik]; return d;
     }, function (err) { delete inflight[ik]; throw err; }));
+    if (hit && !opts.force && opts.wait) { // «wait»: una copia vencida NO se enseña; se espera la red (máx. 4 s) y solo entonces se cae a la copia (al entrar a la app y al cambiar de deporte)
+      return new Promise(function (res) {
+        var done = false, t = setTimeout(function () { if (!done) { done = true; res(hit.d); } }, 4000);
+        req.then(function (d) { if (!done) { done = true; clearTimeout(t); res(d); } else if (opts.onFresh) opts.onFresh(d); }, function () { if (!done) { done = true; clearTimeout(t); res(hit.d); } });
+      });
+    }
     if (hit && !opts.force) { // stale-while-revalidate
       req.then(function (d) { if (opts.onFresh) opts.onFresh(d); }, function () { /* sin red: se queda lo guardado */ });
       return Promise.resolve(hit.d);
@@ -41,7 +47,7 @@
   D.schedule = function (sport, ymd, opts) {
     opts = opts || {};
     var live = ymd === U.ymd(new Date());
-    return D.getJSON("api/schedule?sport=" + sport + "&date=" + ymd, { ttl: live ? 15 * 1000 : 30 * MIN, maxAge: live ? 3 * MIN : 12 * 60 * MIN, force: opts.force, onFresh: opts.onFresh });
+    return D.getJSON("api/schedule?sport=" + sport + "&date=" + ymd, { ttl: live ? 15 * 1000 : 30 * MIN, maxAge: live ? 3 * MIN : 12 * 60 * MIN, force: opts.force, wait: opts.wait, live: live, onFresh: opts.onFresh });
   };
   /** Noticias: frescas 20 min; una copia guardada de más de 6 h ya no se enseña (las noticias caducan). Se descartan además las de más de 7 días o de otro año. */
   D.news = function (sport, opts) {

@@ -66,3 +66,19 @@ test("futbolvivo: descifra el formato «k1» (AES-GCM + alfabeto sustituido + ca
   assert.deepEqual(await decodePayload('{"a":1}'), { a: 1 });
   await assert.rejects(() => decodePayload("k1!!!"));
 });
+
+test("isSafeUrl: bloquea IPs internas pero NO dominios que empiezan por «10.» (nodos 10.ftlly.com de tvf90)", () => {
+  assert.equal(isSafeUrl("https://10.ftlly.com:443/espn7/mono.m3u8?token=x"), true);
+  assert.equal(isSafeUrl("https://127.example.com/a"), true);
+  for (const u of ["http://10.0.0.5/", "http://127.0.0.1:3000/", "http://192.168.1.2/", "http://172.16.0.1/", "http://169.254.169.254/latest", "http://localhost/", "https://[::1]/", "ftp://x.com/"]) assert.equal(isSafeUrl(u), false, u);
+});
+test("hub: transmisoras de ESPN → canales con emisión (solo los que existen en el catálogo)", async () => {
+  const { hubServers } = await import("../lib/hub.js");
+  const { HUB } = await import("../lib/hubdata.js");
+  assert.ok(HUB.ids.length > 10);
+  const live = hubServers(["ESPN2", "TUDN", "Peacock", "NBC Sports Phil"]);
+  assert.ok(live.every((s) => /^https:\/\/tvf90\.com\/[12]\.php\?stream=\w+$/.test(s.url) && s.pri === 4));
+  assert.ok(!live.some((s) => /peacock|nbc/i.test(s.url)));
+  assert.deepEqual(hubServers([]), []);
+  assert.deepEqual(hubServers(["Fox"]), []);   // la cadena «Fox» (EE. UU.) no es Fox Sports
+});

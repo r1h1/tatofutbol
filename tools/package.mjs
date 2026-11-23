@@ -15,6 +15,8 @@ let esbuild = null; try { esbuild = (await import("esbuild")).default || (await 
 
 // canales 24/7 comprobados → data/channels.json (si no hay red se conserva el anterior; SKIP_CHANNELS=1 lo omite)
 if (!process.env.SKIP_CHANNELS) spawnSync(process.execPath, [path.join(ROOT, "tools", "build-channels.mjs")], { stdio: "inherit", timeout: 240000 });
+// catálogo de canales del hub con emisión → lib/hubdata.js (señales por transmisora; si no hay red se conserva el anterior)
+if (!process.env.SKIP_CHANNELS) spawnSync(process.execPath, [path.join(ROOT, "tools", "build-hub.mjs")], { stdio: "inherit", timeout: 300000 });
 fs.rmSync(DIST, { recursive: true, force: true }); fs.mkdirSync(SITE, { recursive: true });
 for (const f of INCLUDE) { const s = path.join(ROOT, f); if (fs.existsSync(s)) fs.cpSync(s, path.join(SITE, f), { recursive: true }); }
 

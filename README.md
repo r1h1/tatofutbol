@@ -39,6 +39,14 @@ Cada evento de cualquier fuente se clasifica por su título (`lib/sports.js`; lo
 - **Rapidez:** cada fuente de agenda tiene un plazo de 4,5 s y una copia de 25 s en el servidor; ESPN, 12 s: una fuente lenta ya no retrasa la lista. Consumo: ≈ 10 KB por consulta; con 10 usuarios, muy por debajo de los 100 GB mensuales.
 - **Canales al instante:** `data/channels.json` (≈ 400 canales comprobados, se regenera con `npm run channels` y al empaquetar) se muestra de inmediato y `/api/channels` lo revalida detrás (de ~8 s a < 0,1 s).
 
+## Cómo se encuentran y se verifican las señales (resumen)
+
+1. **Agendas** (pirlotv, futbollibre/pelotalibre, pirllotv, pirlotvonoine, adstrim, futbolvivo, StreamEast) → eventos con sus servidores.
+2. **Transmisoras** (`lib/hub.js`): ESPN indica qué cadenas emiten cada evento (ESPN2, FS1, TUDN…); se traducen a canales del hub `tvf90.com` que tienen emisión ahora (`lib/hubdata.js`, generado por `tools/build-hub.mjs`). Así hay señal incluso cuando ninguna agenda lista el partido.
+3. **Resolución sin navegador** (`lib/resolver.js`): se sigue la cadena de reproductores hasta la lista HLS y se comprueba que responda (dos intentos en paralelo). Se informa de si el navegador puede pedirla él mismo (`direct`: CORS abierto y sin token atado a la IP) o si debe pasar por `/api/hls`.
+4. **Token atado a la IP**: `tvf90/ftlly` emiten `?token=…` válido solo para la IP que lo pidió (en local todo funciona porque resuelve y reproduce la misma IP; en producción el navegador del usuario recibe 403). Por eso esas listas van siempre por el proxy.
+5. **Cliente** (`js/player.js`): al abrir un partido verifica en paralelo las primeras señales y marca cada una (directo / sin señal / protegido); reproduce la primera buena (se prefiere vídeo directo a un iframe), reintenta con resolución nueva si el token caducó, vigila congelamientos y salta sola a otra señal. Recuerda en el navegador qué dominios funcionaron y la última señal buena de cada partido.
+
 ## Familia pirlotv / pelotalibre (ingeniería inversa de sus agendas)
 
 Todos son cascarones sobre el mismo backend: `pirlotv.la` (HTML servido, `<li>Liga: A vs B<span class=t>`), **`pirllotv.hair` = `pirlo.rest`** (WordPress, plugin `futbol-agenda`: `/wp-content/uploads/futbol-agenda/agenda.json`, canales ya con su `stream_url` de tvf90), **`pelotalibre.mx`** (lee `agenda18.com/agenda.json`, Strapi, igual que `futbollibretvplay.org` → `api.wqxag.com`), **`pirlotvonoine.site` / `pelotalibrehd.me`** (Astro, `/api/agenda`, mismos ids que agenda18) y `pelotalibres.st` (HTML, hora de España, hub `streamx99.com`). Los reproductores son hubs: **`tvf90.com`** (resoluble, ≈ 95 %), `la18hd.su` (403 a clientes externos), `golperutv.xyz` → `quotarevival.net` (protegido por dominio) y `streamx99.com` (URL escondida en un script ofuscado: no se resuelve sin ejecutar su código). TatoTV lee las cuatro agendas resolubles y descarta los hubs no usables.

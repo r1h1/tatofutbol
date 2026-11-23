@@ -125,14 +125,29 @@
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
       </button>
     </header>
-    <div class="p-score" id="p-score" hidden></div>
-    <div class="p-stage" id="p-stage">
-      <video id="p-video" controls playsinline webkit-playsinline x-webkit-airplay="allow" autoplay></video>
-      <iframe id="p-frame" title="Reproductor" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" referrerpolicy="origin" hidden></iframe>
-      <div class="p-msg" id="p-msg"><img class="pulse" src="img/logo-96.png" width="64" height="64" alt=""><span>Elige un servidor</span></div>
+    <div class="p-body">
+      <div class="p-main">
+        <div class="p-score" id="p-score" hidden></div>
+        <div class="p-stage" id="p-stage">
+          <video id="p-video" controls playsinline webkit-playsinline x-webkit-airplay="allow" autoplay></video>
+          <iframe id="p-frame" title="Reproductor" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" referrerpolicy="origin" hidden></iframe>
+          <div class="p-msg" id="p-msg"><img class="pulse" src="img/logo-96.png" width="64" height="64" alt=""><span>Elige un servidor</span></div>
+        </div>
+        <div class="p-tools" id="p-tools">
+          <button type="button" class="btn-w sm" id="p-next">Otra señal</button>
+          <button type="button" class="btn-w sm" id="p-reload">Recargar</button>
+          <button type="button" class="btn-w sm" id="p-live" hidden>Ir al directo</button>
+          <button type="button" class="btn-w sm" id="p-pip" hidden>Imagen en imagen</button>
+          <button type="button" class="btn-w sm" id="p-fs" hidden>Pantalla completa</button>
+        </div>
+        <p class="p-now" id="p-now"></p>
+        <p class="p-hint" id="p-hint"></p>
+      </div>
+      <aside class="p-side" aria-label="Señales disponibles">
+        <h3 class="p-sh">Señales <small id="p-count"></small></h3>
+        <div class="p-servers" id="p-servers"></div>
+      </aside>
     </div>
-    <div class="p-servers" id="p-servers"></div>
-    <p class="p-hint" id="p-hint"></p>
   </div>
 </div>
 

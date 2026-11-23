@@ -6,7 +6,8 @@
 import { json, fail, canon, nameScore, hash, ymd } from "../lib/core.js";
 import { espnDay } from "../lib/espn.js";
 import { SPORTS, isSport } from "../lib/sports.js";
-import { scrapeAgenda } from "../lib/sources.js";
+import { scrapeAgenda, pruneDeadTvf } from "../lib/sources.js";
+import { hubServers } from "../lib/hub.js";
 
 export const config = { runtime: "edge" };
 
@@ -98,7 +99,7 @@ export default async function handler(request) {
       else sc = c.start && e.start && Math.abs(Date.parse(c.start) - Date.parse(e.start)) <= 90 * 60e3 ? 0.7 : 0; // carreras, carteleras y torneos: la misma hora
       if (sc > bestScore) { bestScore = sc; best = i; }
     });
-    const m = { id: e.id, sport, league: e.league, start: e.start, state: e.state, detail: e.detail, a: e.a, b: e.b, servers: [] };
+    const m = { id: e.id, sport, league: e.league, start: e.start, state: e.state, detail: e.detail, a: e.a, b: e.b, servers: [], tv: e.bc || [] };
     if (best >= 0) {
       used.add(best);
       const c = clusters[best];
@@ -109,6 +110,8 @@ export default async function handler(request) {
         m.a = { ...e.a, n: straight ? c.home : c.away }; m.b = { ...e.b, n: straight ? c.away : c.home };
       }
     }
+    // señales por transmisora: las cadenas que ESPN indica para el evento (ESPN2, FS1, TUDN…) → canales del hub con emisión ahora
+    if (inWindow && e.state !== "post" && e.bc && e.bc.length) { mergeServers(m.servers, hubServers(e.bc), 4); m.servers.sort((x, y) => (x.pri || 5) - (y.pri || 5)); }
     return m;
   });
 
@@ -121,6 +124,8 @@ export default async function handler(request) {
       a: { n: c.home, ab: "", logo: lg[0], s: "" }, b: { n: c.away, ab: "", logo: lg[1], s: "" }, servers: c.servers,
     });
   });
+
+  if (inWindow) await pruneDeadTvf(matches, 2500);   // quita los canales del hub sin emisión (comprobación con memo de 3 min)
 
   // Fútbol: ESPN lista cientos de partidos; se muestran los que tienen transmisión (si ninguna fuente respondió, solo los primeros 120).
   let list = matches;
