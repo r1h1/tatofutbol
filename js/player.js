@@ -94,7 +94,7 @@
 
   /** Reproduce un .m3u8 con hls.js (o HLS nativo en Safari/iOS). `urls` = intentos en orden; si uno falla se prueba el siguiente y, al agotarse, onFail. */
   function playHls(urls, onFail, onOk) {
-    var my = token, i = 0, giveUp;
+    var my = token, i = 0, giveUp, started = false, netFails = 0;
     function next(reason) {
       if (my !== token) return;
       if (hls) { try { hls.destroy(); } catch (e) { /* nada */ } hls = null; }
@@ -103,19 +103,26 @@
     }
     function ok() {
       if (my !== token) return;
+      started = true;
       clearTimeout(giveUp); el.msg.hidden = true; el.video.hidden = false;
       var pr = el.video.play(); if (pr && pr.catch) pr.catch(function () { /* el usuario pulsará play */ });
       if (onOk) onOk();
     }
     function start(src) {
-      clearTimeout(giveUp);
+      clearTimeout(giveUp); started = false; netFails = 0;
       giveUp = setTimeout(function () { next("tiempo agotado"); }, i === 1 ? 10000 : 8000);
       if (w.Hls && w.Hls.isSupported()) {
         // capLevelToPlayerSize: no baja más resolución de la que cabe en el reproductor (menos datos y menos carga en el proxy)
-        hls = new w.Hls({ lowLatencyMode: false, capLevelToPlayerSize: true, maxBufferLength: 20, backBufferLength: 20, manifestLoadingMaxRetry: 1, levelLoadingMaxRetry: 2, fragLoadingMaxRetry: 3, manifestLoadingTimeOut: 8000 });
+        // Datos móviles: las recargas de la lista del directo (por el proxy) pueden tardar >10 s. Antes 2 seguidas = error fatal
+        // y se saltaba a otra señal aunque la imagen ya corría bien («funciona y a los ~10 s lo marca como que no sirve»).
+        hls = new w.Hls({ lowLatencyMode: false, capLevelToPlayerSize: true, maxBufferLength: 20, backBufferLength: 20, manifestLoadingMaxRetry: 1, manifestLoadingTimeOut: 10000,
+          levelLoadingMaxRetry: 5, levelLoadingTimeOut: 20000, levelLoadingRetryDelay: 1000, fragLoadingMaxRetry: 6, fragLoadingTimeOut: 30000, fragLoadingRetryDelay: 1000 });
         hls.on(w.Hls.Events.MANIFEST_PARSED, ok);
+        hls.on(w.Hls.Events.FRAG_BUFFERED, function () { netFails = 0; });
         hls.on(w.Hls.Events.ERROR, function (e, d) {
           if (!d.fatal) return;
+          // ya estaba sonando: un tropiezo de red se recupera (hasta 3 veces seguidas) antes de descartar la señal
+          if (d.type === w.Hls.ErrorTypes.NETWORK_ERROR && started && hls && netFails < 3) { netFails++; try { hls.startLoad(); return; } catch (x) { /* sigue */ } }
           if (d.type === w.Hls.ErrorTypes.MEDIA_ERROR && hls && !el.video.hidden) { try { hls.recoverMediaError(); return; } catch (x) { /* sigue */ } }
           clearTimeout(giveUp); next(d.details);
         });
@@ -137,8 +144,12 @@
       var v = el.video;
       if (v.paused || v.seeking || v.ended || v.hidden || document.hidden) { still = 0; return; }
       if (Math.abs(v.currentTime - lastT) < 0.05) still++; else { still = 0; lastT = v.currentTime; }
+      // Esperando datos (readyState < 3: red lenta, p. ej. datos móviles) no es lo mismo que una imagen congelada:
+      // se le da más tiempo (28 s) y se pide de nuevo antes de descartar la señal. Congelada con datos: 16 s, como antes.
+      var buffering = v.readyState < 3, limit = buffering ? 7 : 4;
       if (still === 2 && hls) { try { hls.recoverMediaError(); } catch (e) { /* nada */ } }
-      if (still >= 4 && cur) { var i = cur.i; watch(false); fail(i, curM, "La señal se detuvo."); }
+      if (still === 4 && buffering && hls) { try { hls.startLoad(); } catch (e) { /* nada */ } }
+      if (still >= limit && cur) { var i = cur.i; watch(false); fail(i, curM, "La señal se detuvo."); }
     }, 4000);
   }
 
@@ -155,7 +166,7 @@
     var n = serverCount, k;
     for (k = idx + 1; k < n; k++) if (svs[k] && state[k] !== "off") return go(k);
     if (wrap) for (k = 0; k < n; k++) if (k !== idx && svs[k] && state[k] !== "off") return go(k);
-    msg((why || "Esta señal no responde.") + " Prueba otra señal o un canal 24/7.", true);
+    msg((why || "Esta señal no responde.") + " Prueba otra señal.", true);
   }
   /** Señal con vídeo directo ya verificada (más ligera y sin anuncios) distinta de la actual. */
   function directAlt(idx) { var n = serverCount, k; for (k = 0; k < n; k++) if (k !== idx && svs[k] && state[k] === "ok" && tags[k] === "Directo") return k; return -1; }
@@ -251,7 +262,7 @@
       if (token0 !== openToken || el.root.hidden) return;
       var list = (d && d.servers) || [], first = null, k;
       for (k = 0; k < list.length; k++) { if (haveUrl(list[k].url)) continue; var b = addServerButton({ name: "StreamEast · " + list[k].name, url: list[k].url, kind: "embed" }, m); if (!first) first = b; }
-      if (!list.length) { if (autoplay) { msg("Aún no hay señales publicadas para este partido.", true); el.hint.textContent = "StreamEast las publica poco antes del inicio. Vuelve a abrir el partido en unos minutos o prueba un canal 24/7."; } return; }
+      if (!list.length) { if (autoplay) { msg("Aún no hay señales publicadas para este partido.", true); el.hint.textContent = "StreamEast las publica poco antes del inicio. Vuelve a abrir el partido en unos minutos."; } return; }
       if (autoplay && first) first.click();
     });
   }
@@ -325,8 +336,7 @@
     el.root.setAttribute("data-match", m.id);
     if (!m.servers || !m.servers.length) {
       renderServers([], m); stop(); msg("Aún no hay transmisión publicada para este partido.", true);
-      el.hint.textContent = "Las fuentes suelen publicar los enlaces poco antes del inicio. Mientras tanto prueba un canal 24/7.";
-      addChannels(m.sport, ot);
+      el.hint.textContent = "Las fuentes suelen publicar los enlaces poco antes del inicio. Vuelve a abrir el partido en unos minutos.";
       return;
     }
     var plain = [], groups = [], j;
@@ -337,8 +347,7 @@
     if (plain.length) playServer(plain[0], 0, m, true); else { stop(); msg("Buscando señales…"); }
     var pend = [];
     for (j = 0; j < groups.length; j++) pend.push(expandGroup(groups[j], m, ot, !plain.length && j === 0));
-    // los canales 24/7 van al final: se añaden cuando ya se expandieron los grupos (así el orden es siempre: servidores del partido → StreamEast → canales)
-    Promise.all(pend).then(function () { addChannels(m.sport, ot); }, function () { addChannels(m.sport, ot); });
+    // (pedido del dueño, 26 nov 2026: la ventana del partido ya no muestra «Canales 24/7»; siguen en la pestaña Canales)
   };
   /** Abre un canal M3U suelto. */
   P.openChannel = function (ch) {
