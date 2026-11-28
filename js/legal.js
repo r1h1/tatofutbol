@@ -135,7 +135,7 @@
     return row("Legal y no responsabilidad", "Aviso legal, descargo de responsabilidad y condiciones de uso.", '<button type="button" class="lg-btn" data-lg="doc">Leer</button>') +
       row("Privacidad", "Qué se guarda en tu dispositivo y qué procesan los servidores.", '<button type="button" class="lg-btn" data-lg="priv">Leer</button>') +
       row("Código fuente", "Proyecto de código abierto (MIT), gratuito y sin fines de lucro. Su autor no obtiene ingresos.", '<a class="lg-btn" href="' + REPO + '" target="_blank" rel="noopener noreferrer">Abrir</a>') +
-      row("Créditos", U.esc(OPERATOR + ", creador de la idea, del código fuente y del mantenimiento gratuito de los servidores; no del material audiovisual ni escrito que aquí aparece."), '<a class="lg-btn" href="' + AUTHOR_URL + '" target="_blank" rel="noopener noreferrer">github.com/r1h1</a>') +
+      row("Créditos", U.esc(OPERATOR + ", Guatemala, creador de la idea, del código fuente y del mantenimiento gratuito de los servidores; no del material audiovisual ni escrito que aquí aparece."), '<a class="lg-btn" href="' + AUTHOR_URL + '" target="_blank" rel="noopener noreferrer">github.com/r1h1</a>') +
       row("Sitios de terceros", "Fuentes, reproductores y servicios que usa TatoTV.", '<button type="button" class="lg-btn" data-lg="third">Ver</button>') +
       row("Retiro de contenido", "¿Eres titular de derechos? Cómo solicitar el retiro de un enlace.", '<button type="button" class="lg-btn" data-lg="dmca">Ver</button>');
   }

@@ -58,7 +58,7 @@
     if (isNaN(d.getTime())) return { t: "--:--", p: "" };
     try {
       var parts = new Intl.DateTimeFormat([], { hour: "numeric", minute: "2-digit" }).formatToParts(d), t = "", p = "", i;
-      for (i = 0; i < parts.length; i++) { if (parts[i].type === "dayPeriod") p = parts[i].value.replace(/\./g, "").toUpperCase(); else t += parts[i].value; }
+      for (i = 0; i < parts.length; i++) { if (parts[i].type === "dayPeriod") p = parts[i].value.replace(/[.\s\u00a0\u202f]/g, "").toUpperCase(); else t += parts[i].value; }
       return { t: t.trim(), p: p };
     } catch (e) {
       return { t: U.pad(d.getHours()) + ":" + U.pad(d.getMinutes()), p: "" };

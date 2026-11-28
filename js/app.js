@@ -124,7 +124,7 @@
       for (var k = 0; k < group.length; k++) items.push({ r: true, h: rowHTML(group[k], A.view.indexOf(group[k])) });
     }
     block("En vivo", "live", live);
-    block(dayLabel(S.day) + " · " + U.mon(ymdDate(S.day)), "", rest);
+    block(dayLabel(S.day) + " · " + ymdDate(S.day).getDate() + " " + U.mon(ymdDate(S.day)), "", rest);
     block("Finalizados", "", finished);
     feedStart(items);
   }

@@ -483,3 +483,5 @@ body:before{content:"";position:fixed;top:0;left:0;right:0;height:var(--sat);bac
   .p-head{padding-top:calc(.8rem + var(--sat) + 5px)}
   .gate .p-box{padding-top:calc(var(--sat) + 5px)}
 }
+/* Rendimiento (navegadores modernos; los viejos lo ignoran): las tarjetas fuera de pantalla no se dibujan hasta acercarse */
+.row{content-visibility:auto;contain-intrinsic-size:auto 6.5rem}
